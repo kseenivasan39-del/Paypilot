@@ -6,7 +6,8 @@ import {
   CheckCheck, Phone, Video, ShieldCheck, Flame, Info,
   Sparkles, Check, CheckCircle2, Clock, UploadCloud,
   FileCode, FileText, ExternalLink, Calendar, X, Bot,
-  ChevronRight, ArrowRight, Shield, Download, AlertCircle
+  ChevronRight, ArrowRight, Shield, Download, AlertCircle,
+  Mic, MicOff, VideoOff, PhoneCall, PhoneOff, UserCheck
 } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import NotificationBell from "@/components/NotificationBell";
@@ -160,8 +161,31 @@ export default function FreelancerMessagesPage() {
   const [isContractDrawerOpen, setIsContractDrawerOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isScheduleCallOpen, setIsScheduleCallOpen] = useState(false);
+  const [isLiveCallActive, setIsLiveCallActive] = useState(false);
+  const [isMicMuted, setIsMicMuted] = useState(false);
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
   const [isAiDrafting, setIsAiDrafting] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Call duration counter
+  useEffect(() => {
+    let timer: any;
+    if (isLiveCallActive) {
+      timer = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setCallDuration(0);
+    }
+    return () => clearInterval(timer);
+  }, [isLiveCallActive]);
+
+  const formatCallTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -382,6 +406,21 @@ export default function FreelancerMessagesPage() {
                 >
                   <UploadCloud className="w-3.5 h-3.5" />
                   <span>Submit Deliverable</span>
+                </button>
+
+                {/* Live Call Button (Instant Audio/Video Sync) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLiveCallActive(true);
+                    setIsMicMuted(false);
+                    setIsVideoMuted(false);
+                  }}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Start Live Call with Client"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Call Client</span>
                 </button>
 
                 {/* Schedule Call */}
@@ -733,6 +772,92 @@ export default function FreelancerMessagesPage() {
                 >
                   Done
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Live Audio / Video Call Overlay */}
+        {isLiveCallActive && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-slate-900 border border-slate-700 text-white rounded-3xl max-w-lg w-full p-8 shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
+              
+              {/* Call Status Badge */}
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold mb-6">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Encrypted Live Call • {formatCallTime(callDuration)}</span>
+              </div>
+
+              {/* Avatar & Pulse Ring */}
+              <div className="relative mb-5">
+                <div className="w-28 h-28 rounded-full border-4 border-blue-500/40 p-1 flex items-center justify-center animate-pulse">
+                  <img
+                    src={activeConv.avatar}
+                    alt={activeConv.clientName}
+                    className="w-full h-full rounded-full object-cover shadow-xl"
+                  />
+                </div>
+                <span className="absolute bottom-1 right-2 w-5 h-5 bg-emerald-500 border-2 border-slate-900 rounded-full flex items-center justify-center text-[10px] font-bold text-white">
+                  ✓
+                </span>
+              </div>
+
+              <h3 className="text-xl font-black text-white">{activeConv.clientName}</h3>
+              <p className="text-xs text-slate-400 font-medium mt-1">{activeConv.clientRole}</p>
+              <p className="text-xs text-blue-400 font-semibold mt-0.5">{activeConv.projectTitle}</p>
+
+              {/* Real-time escrow assurance during call */}
+              <div className="mt-4 px-3 py-1.5 bg-slate-800/80 rounded-xl border border-slate-700/80 text-[11px] text-slate-300 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Milestone 2 Escrow: <strong>₹{activeConv.escrowAmount.toLocaleString()} Locked</strong></span>
+              </div>
+
+              {/* Control Buttons */}
+              <div className="flex items-center justify-center gap-4 mt-8 pt-4 border-t border-slate-800 w-full">
+                
+                {/* Mic toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsMicMuted(!isMicMuted)}
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
+                    isMicMuted 
+                      ? "bg-rose-500/20 text-rose-400 border border-rose-500/40" 
+                      : "bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
+                  }`}
+                  title={isMicMuted ? "Unmute Mic" : "Mute Mic"}
+                >
+                  {isMicMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                </button>
+
+                {/* Video camera toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsVideoMuted(!isVideoMuted)}
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
+                    isVideoMuted 
+                      ? "bg-rose-500/20 text-rose-400 border border-rose-500/40" 
+                      : "bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
+                  }`}
+                  title={isVideoMuted ? "Turn On Camera" : "Turn Off Camera"}
+                >
+                  {isVideoMuted ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+                </button>
+
+                {/* End Call Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLiveCallActive(false);
+                    handleSend(`📞 Call with ${activeConv.clientName} ended (${formatCallTime(callDuration)}). Milestone action items noted.`);
+                    setToastMsg(`Call ended • Duration: ${formatCallTime(callDuration)}`);
+                    setTimeout(() => setToastMsg(null), 3500);
+                  }}
+                  className="px-6 h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-600/30 transition-all cursor-pointer"
+                >
+                  <PhoneOff className="w-4 h-4" />
+                  <span>End Call</span>
+                </button>
+
               </div>
             </div>
           </div>
