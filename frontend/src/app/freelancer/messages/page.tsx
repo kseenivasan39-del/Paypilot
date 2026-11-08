@@ -7,7 +7,8 @@ import {
   Sparkles, Check, CheckCircle2, Clock, UploadCloud,
   FileCode, FileText, ExternalLink, Calendar, X, Bot,
   ChevronRight, ArrowRight, Shield, Download, AlertCircle,
-  Mic, MicOff, VideoOff, PhoneCall, PhoneOff, UserCheck
+  Mic, MicOff, VideoOff, PhoneCall, PhoneOff, UserCheck,
+  Star, Reply, Image as ImageIcon, ZoomIn, Copy
 } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import NotificationBell from "@/components/NotificationBell";
@@ -18,15 +19,24 @@ interface Message {
   sender: "client" | "freelancer" | "system";
   text: string;
   time: string;
+  dateGroup?: string; // "Today", "Yesterday", "Oct 6, 2026"
+  isRead?: boolean; // For double blue ticks
+  isDelivered?: boolean;
+  isStarred?: boolean;
+  replyTo?: {
+    senderName: string;
+    text: string;
+  };
   callEvent?: {
     type: "started" | "ended";
     duration?: string;
   };
   attachment?: {
-    type: "code" | "file" | "milestone";
+    type: "code" | "file" | "image";
     title: string;
     detail: string;
     url?: string;
+    imageUrl?: string;
   };
 }
 
@@ -127,41 +137,119 @@ export default function FreelancerMessagesPage() {
 
   const [messageHistories, setMessageHistories] = useState<Record<string, Message[]>>({
     "C-1": [
-      { id: 1, sender: "client", text: "Hey Rahul! Could you send the latest git commit or code snippet for the responsive charts?", time: "10:15 AM" },
-      { id: 2, sender: "freelancer", text: "Sure thing Sarah! I just pushed the responsive grid and KaTeX math renderer to main.", time: "10:18 AM" },
+      { 
+        id: 1, 
+        sender: "client", 
+        text: "Hey Rahul! Could you send the latest git commit or code snippet for the responsive charts?", 
+        time: "10:15 AM",
+        dateGroup: "Today",
+        isRead: true,
+        isDelivered: true,
+        isStarred: false
+      },
+      { 
+        id: 2, 
+        sender: "freelancer", 
+        text: "Sure thing Sarah! I just pushed the responsive grid and KaTeX math renderer to main.", 
+        time: "10:18 AM",
+        dateGroup: "Today",
+        isRead: true,
+        isDelivered: true,
+        isStarred: true
+      },
       { 
         id: 3, 
         sender: "freelancer", 
-        text: "Here is the verified pull request for Milestone 2:", 
+        text: "Here is the verified pull request for Milestone 2 with UI dashboard preview:", 
         time: "10:20 AM",
+        dateGroup: "Today",
+        isRead: true,
+        isDelivered: true,
+        isStarred: true,
         attachment: {
-          type: "code",
-          title: "PR #14: responsive-charts-and-darkmode",
-          detail: "Branch main • 12 commits • +480 / -32 lines • Passes 14 tests",
-          url: "https://github.com/paypilot/demo/pull/14"
+          type: "image",
+          title: "React_Dashboard_Darkmode_Preview.png",
+          detail: "PNG Preview • 1920x1080 • Verified by PayPilot AI Inspector",
+          imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80"
         }
       },
-      { id: 4, sender: "client", text: "The responsive charts and dark mode are looking fantastic! Let's do Milestone 2 verification.", time: "10:22 AM" }
+      { 
+        id: 4, 
+        sender: "client", 
+        text: "The responsive charts and dark mode are looking fantastic! Let's do Milestone 2 verification.", 
+        time: "10:22 AM",
+        dateGroup: "Today",
+        isRead: true,
+        isDelivered: true,
+        isStarred: false
+      }
     ],
     "C-2": [
-      { id: 101, sender: "client", text: "Hi Rahul, how is the LaTeX whitepaper progress coming along?", time: "Yesterday" },
-      { id: 102, sender: "freelancer", text: "Just compiled the final 10-page draft with mathematical escrow formulas. Uploaded here for your review!", time: "2h ago",
+      { 
+        id: 101, 
+        sender: "client", 
+        text: "Hi Rahul, how is the LaTeX whitepaper progress coming along?", 
+        time: "Yesterday 4:15 PM",
+        dateGroup: "Yesterday",
+        isRead: true,
+        isDelivered: true
+      },
+      { 
+        id: 102, 
+        sender: "freelancer", 
+        text: "Just compiled the final 10-page draft with mathematical escrow formulas. Uploaded here for your review!", 
+        time: "2h ago",
+        dateGroup: "Today",
+        isRead: true,
+        isDelivered: true,
         attachment: {
           type: "file",
           title: "Autonomous_Arbitration_Whitepaper_v2.pdf",
           detail: "PDF Document • 4.2 MB • IEEE Standard Layout",
-          url: "#"
+          url: "https://example.com/whitepaper.pdf"
         }
       },
-      { id: 103, sender: "client", text: "We received the PDF draft. Running automated compliance audit now.", time: "2h ago" }
+      { 
+        id: 103, 
+        sender: "client", 
+        text: "We received the PDF draft. Running automated compliance audit now.", 
+        time: "2h ago",
+        dateGroup: "Today",
+        isRead: true,
+        isDelivered: true
+      }
     ],
     "C-3": [
-      { id: 201, sender: "client", text: "Can we add two more query filters to the transactions endpoint?", time: "1d ago" },
-      { id: 202, sender: "freelancer", text: "Definitely, I can include filters for startDate/endDate and escrowStatus in today's commit.", time: "1d ago" }
+      { 
+        id: 201, 
+        sender: "client", 
+        text: "Can we add two more query filters to the transactions endpoint?", 
+        time: "Oct 6, 2026",
+        dateGroup: "Oct 6, 2026",
+        isRead: true,
+        isDelivered: true
+      },
+      { 
+        id: 202, 
+        sender: "freelancer", 
+        text: "Definitely, I can include filters for startDate/endDate and escrowStatus in today's commit.", 
+        time: "Oct 6, 2026",
+        dateGroup: "Oct 6, 2026",
+        isRead: true,
+        isDelivered: true
+      }
     ]
   });
 
   const [inputText, setInputText] = useState("");
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [isClientTyping, setIsClientTyping] = useState(false);
+
+  // Starred drawer & Document/Image gallery viewer
+  const [isStarredDrawerOpen, setIsStarredDrawerOpen] = useState(false);
+  const [galleryMedia, setGalleryMedia] = useState<{ title: string; detail: string; imageUrl?: string; url?: string } | null>(null);
+
+  // Modals & drawers
   const [isContractDrawerOpen, setIsContractDrawerOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isScheduleCallOpen, setIsScheduleCallOpen] = useState(false);
@@ -197,7 +285,7 @@ export default function FreelancerMessagesPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeMessages]);
+  }, [activeMessages, isClientTyping]);
 
   const handleSend = (textToSend?: string) => {
     const text = textToSend || inputText;
@@ -207,7 +295,15 @@ export default function FreelancerMessagesPage() {
       id: Date.now(),
       sender: "freelancer",
       text: text.trim(),
-      time: "Just now"
+      time: "Just now",
+      dateGroup: "Today",
+      isRead: false,
+      isDelivered: true,
+      isStarred: false,
+      replyTo: replyingTo ? {
+        senderName: replyingTo.sender === "freelancer" ? "You" : activeConv.clientName,
+        text: replyingTo.text
+      } : undefined
     };
 
     setMessageHistories((prev) => ({
@@ -215,7 +311,39 @@ export default function FreelancerMessagesPage() {
       [activeConv.id]: [...(prev[activeConv.id] || []), newMsg]
     }));
 
-    if (!textToSend) setInputText("");
+    if (!textToSend) {
+      setInputText("");
+      setReplyingTo(null);
+    }
+
+    // Simulate WhatsApp double blue ticks after 1.5 seconds & simulated client reply
+    setTimeout(() => {
+      setMessageHistories((prev) => ({
+        ...prev,
+        [activeConv.id]: (prev[activeConv.id] || []).map((m) => 
+          m.id === newMsg.id ? { ...m, isRead: true } : m
+        )
+      }));
+    }, 1500);
+
+    // Simulate live client typing indicator after 2 seconds
+    setTimeout(() => {
+      setIsClientTyping(true);
+      setTimeout(() => {
+        setIsClientTyping(false);
+      }, 3000);
+    }, 2200);
+  };
+
+  const handleToggleStar = (msgId: number) => {
+    setMessageHistories((prev) => ({
+      ...prev,
+      [activeConv.id]: (prev[activeConv.id] || []).map((m) => 
+        m.id === msgId ? { ...m, isStarred: !m.isStarred } : m
+      )
+    }));
+    setToastMsg("Updated pinned / starred messages!");
+    setTimeout(() => setToastMsg(null), 2500);
   };
 
   const handleAiDraftResponse = () => {
@@ -243,6 +371,8 @@ export default function FreelancerMessagesPage() {
       c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesQuery;
   });
+
+  const starredMessagesList = (messageHistories[activeConv.id] || []).filter((m) => m.isStarred);
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] font-sans h-screen overflow-hidden text-slate-800">
@@ -386,7 +516,7 @@ export default function FreelancerMessagesPage() {
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-bold text-slate-900 truncate">{activeConv.clientName}</h3>
                     <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                      {activeConv.isOnline ? "Online" : "Away"}
+                      {isClientTyping ? "typing..." : (activeConv.isOnline ? "Online" : "Away")}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 truncate font-medium">{activeConv.projectTitle}</p>
@@ -425,6 +555,7 @@ export default function FreelancerMessagesPage() {
                       sender: "system",
                       text: `Audio call started with ${activeConv.clientName}`,
                       time: "Just now",
+                      dateGroup: "Today",
                       callEvent: { type: "started" }
                     };
                     setMessageHistories((prev) => ({
@@ -436,6 +567,25 @@ export default function FreelancerMessagesPage() {
                   title={`Call ${activeConv.clientName}`}
                 >
                   <Phone className="w-4 h-4 text-emerald-600" />
+                </button>
+
+                {/* Starred / Pinned Messages Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsStarredDrawerOpen(true)}
+                  className={`w-9 h-9 border rounded-xl flex items-center justify-center transition-colors cursor-pointer relative ${
+                    starredMessagesList.length > 0 
+                      ? "border-amber-200 bg-amber-50/70 text-amber-600 hover:bg-amber-100" 
+                      : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                  }`}
+                  title="View Pinned & Starred Messages"
+                >
+                  <Star className={`w-4 h-4 ${starredMessagesList.length > 0 ? "fill-amber-400 text-amber-500" : ""}`} />
+                  {starredMessagesList.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center">
+                      {starredMessagesList.length}
+                    </span>
+                  )}
                 </button>
 
                 {/* Schedule Video Call */}
@@ -452,7 +602,7 @@ export default function FreelancerMessagesPage() {
                 <button
                   type="button"
                   onClick={() => setIsContractDrawerOpen(true)}
-                  className="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 transition-colors cursor-pointer"
+                  className="w-9 h-9 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                   title="View Contract Scope & Criteria"
                 >
                   <Info className="w-4 h-4 text-slate-600" />
@@ -462,7 +612,7 @@ export default function FreelancerMessagesPage() {
             </div>
 
             {/* Message History Feed */}
-            <div className="flex-1 p-6 overflow-y-auto space-y-4">
+            <div className="flex-1 p-6 overflow-y-auto space-y-3">
               
               {/* Encrypted Notice Banner */}
               <div className="flex items-center justify-center my-2">
@@ -472,72 +622,203 @@ export default function FreelancerMessagesPage() {
                 </div>
               </div>
 
-              {activeMessages.map((m) => {
+              {activeMessages.map((m, index) => {
+                // Check if we need to show date group header (WhatsApp style Date Divider)
+                const prevMsg = activeMessages[index - 1];
+                const showDateHeader = !prevMsg || prevMsg.dateGroup !== m.dateGroup;
+
                 // WhatsApp-style system call card
                 if (m.sender === "system" && m.callEvent) {
                   const isStarted = m.callEvent.type === "started";
                   return (
-                    <div key={m.id} className="flex justify-center my-2">
-                      <div className="flex items-center gap-2.5 px-4 py-2 bg-slate-100/90 border border-slate-200/90 rounded-2xl shadow-xs text-xs">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                          isStarted ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"
-                        }`}>
-                          {isStarted ? <Phone className="w-3.5 h-3.5" /> : <PhoneOff className="w-3.5 h-3.5" />}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-800">
-                            {isStarted ? `Call started with ${activeConv.clientName}` : `Call ended (${m.callEvent.duration || "00:00"})`}
+                    <div key={m.id} className="space-y-3">
+                      {showDateHeader && m.dateGroup && (
+                        <div className="flex justify-center my-2">
+                          <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-500 uppercase tracking-wider shadow-2xs">
+                            {m.dateGroup}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-medium">• {m.time}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-center my-2">
+                        <div className="flex items-center gap-2.5 px-4 py-2 bg-slate-100/90 border border-slate-200/90 rounded-2xl shadow-xs text-xs">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                            isStarted ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"
+                          }`}>
+                            {isStarted ? <Phone className="w-3.5 h-3.5" /> : <PhoneOff className="w-3.5 h-3.5" />}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-800">
+                              {isStarted ? `Call started with ${activeConv.clientName}` : `Call ended (${m.callEvent.duration || "00:00"})`}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-medium">• {m.time}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   );
                 }
 
-                return (
-                  <div 
-                    key={m.id}
-                    className={`flex ${m.sender === "freelancer" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div className={`max-w-lg p-4 rounded-2xl text-xs leading-relaxed space-y-2 ${
-                      m.sender === "freelancer"
-                        ? "bg-blue-600 text-white rounded-br-xs shadow-md shadow-blue-500/20"
-                        : "bg-white text-slate-800 border border-slate-200 rounded-bl-xs shadow-sm"
-                    }`}>
-                      <p className="whitespace-pre-line">{m.text}</p>
+                const isFreelancer = m.sender === "freelancer";
 
-                      {/* Rich Attachment Snippet */}
-                      {m.attachment && (
-                        <div className={`p-3 rounded-xl border mt-2 ${
-                          m.sender === "freelancer"
-                            ? "bg-blue-700/60 border-blue-400/40 text-white"
-                            : "bg-slate-50 border-slate-200 text-slate-800"
-                        }`}>
-                          <div className="flex items-center justify-between font-bold text-xs mb-1">
-                            <span className="flex items-center gap-1.5">
-                              {m.attachment.type === "code" ? <FileCode className="w-4 h-4 text-cyan-300" /> : <FileText className="w-4 h-4 text-amber-400" />}
-                              {m.attachment.title}
-                            </span>
-                            {m.attachment.url && (
-                              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                            )}
-                          </div>
-                          <p className={`text-[11px] ${m.sender === "freelancer" ? "text-blue-100" : "text-slate-500"}`}>
-                            {m.attachment.detail}
-                          </p>
+                return (
+                  <div key={m.id} className="space-y-2">
+                    {/* WhatsApp Style Date Divider */}
+                    {showDateHeader && m.dateGroup && (
+                      <div className="flex justify-center my-3">
+                        <span className="px-3.5 py-1 bg-white border border-slate-200/90 rounded-full text-[10px] font-bold text-slate-500 uppercase tracking-wider shadow-2xs">
+                          {m.dateGroup}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Message Bubble Row with Hover Actions (Reply, Star) */}
+                    <div className={`group flex items-end gap-2 ${isFreelancer ? "justify-end" : "justify-start"}`}>
+                      
+                      {/* Left side actions for Freelancer message */}
+                      {isFreelancer && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mb-1">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStar(m.id)}
+                            className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-amber-500 cursor-pointer"
+                            title={m.isStarred ? "Unstar" : "Star message"}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${m.isStarred ? "fill-amber-400 text-amber-500" : ""}`} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setReplyingTo(m)}
+                            className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-blue-600 cursor-pointer"
+                            title="Reply"
+                          >
+                            <Reply className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       )}
 
-                      <span className={`block text-[10px] mt-1 ${
-                        m.sender === "freelancer" ? "text-blue-200 text-right" : "text-slate-400"
+                      <div className={`max-w-lg p-3.5 rounded-2xl text-xs leading-relaxed space-y-2 relative ${
+                        isFreelancer
+                          ? "bg-blue-600 text-white rounded-br-xs shadow-md shadow-blue-500/15"
+                          : "bg-white text-slate-800 border border-slate-200 rounded-bl-xs shadow-xs"
                       }`}>
-                        {m.time}
-                      </span>
+                        
+                        {/* Quoted Message (Reply Preview) */}
+                        {m.replyTo && (
+                          <div className={`p-2 rounded-xl text-[11px] border-l-3 mb-1.5 ${
+                            isFreelancer 
+                              ? "bg-blue-700/70 border-white/80 text-blue-100" 
+                              : "bg-slate-50 border-blue-500 text-slate-600"
+                          }`}>
+                            <p className="font-bold opacity-90">{m.replyTo.senderName}</p>
+                            <p className="truncate opacity-80">{m.replyTo.text}</p>
+                          </div>
+                        )}
+
+                        <p className="whitespace-pre-line">{m.text}</p>
+
+                        {/* Rich Image Gallery Attachment (Click to View) */}
+                        {m.attachment && m.attachment.type === "image" && (
+                          <div 
+                            onClick={() => setGalleryMedia(m.attachment!)}
+                            className="cursor-pointer group/img relative rounded-xl overflow-hidden border border-white/20 mt-2"
+                          >
+                            <img 
+                              src={m.attachment.imageUrl} 
+                              alt={m.attachment.title}
+                              className="w-full h-44 object-cover group-hover/img:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-bold text-xs">
+                              <ZoomIn className="w-4 h-4" /> Click to view full image
+                            </div>
+                            <div className="p-2 bg-slate-900/70 text-white text-[11px] truncate">
+                              {m.attachment.title}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Rich Document / File Attachment (Click to Inspect) */}
+                        {m.attachment && m.attachment.type === "file" && (
+                          <div 
+                            onClick={() => setGalleryMedia(m.attachment!)}
+                            className={`p-3 rounded-xl border mt-2 cursor-pointer transition-colors ${
+                              isFreelancer
+                                ? "bg-blue-700/60 border-blue-400/40 hover:bg-blue-700/80 text-white"
+                                : "bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-800"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between font-bold text-xs mb-1">
+                              <span className="flex items-center gap-1.5">
+                                <FileText className="w-4 h-4 text-amber-400" />
+                                {m.attachment.title}
+                              </span>
+                              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                            </div>
+                            <p className={`text-[11px] ${isFreelancer ? "text-blue-100" : "text-slate-500"}`}>
+                              {m.attachment.detail}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Timestamp & Double Blue Ticks / Star */}
+                        <div className={`flex items-center justify-end gap-1.5 text-[10px] mt-1 ${
+                          isFreelancer ? "text-blue-200" : "text-slate-400"
+                        }`}>
+                          {m.isStarred && (
+                            <Star className="w-3 h-3 fill-amber-300 text-amber-300 mr-0.5" />
+                          )}
+                          <span>{m.time}</span>
+
+                          {/* WhatsApp Read Receipts: Double Blue Ticks */}
+                          {isFreelancer && (
+                            <span title={m.isRead ? "Read by client" : "Delivered"}>
+                              <CheckCheck className={`w-3.5 h-3.5 ${m.isRead ? "text-cyan-300" : "text-blue-300"}`} />
+                            </span>
+                          )}
+                        </div>
+
+                      </div>
+
+                      {/* Right side actions for Client message */}
+                      {!isFreelancer && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mb-1">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStar(m.id)}
+                            className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-amber-500 cursor-pointer"
+                            title={m.isStarred ? "Unstar" : "Star message"}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${m.isStarred ? "fill-amber-400 text-amber-500" : ""}`} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setReplyingTo(m)}
+                            className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-blue-600 cursor-pointer"
+                            title="Reply"
+                          >
+                            <Reply className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+
                     </div>
                   </div>
                 );
               })}
+
+              {/* WhatsApp Live Typing Indicator Bubble */}
+              {isClientTyping && (
+                <div className="flex justify-start items-center gap-2 pt-1 animate-in fade-in">
+                  <div className="bg-white border border-slate-200 px-4 py-2.5 rounded-2xl rounded-bl-xs shadow-xs flex items-center gap-2">
+                    <span className="text-xs text-slate-500 font-medium">{activeConv.clientName} is typing</span>
+                    <div className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
@@ -579,37 +860,213 @@ export default function FreelancerMessagesPage() {
               </button>
             </div>
 
-            {/* Input Bar */}
-            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="p-4 bg-white border-t border-slate-200 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setIsSubmitModalOpen(true)}
-                className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
-                title="Attach code snippet or file"
-              >
-                <Paperclip className="w-4 h-4" />
-              </button>
+            {/* Input Bar with WhatsApp-style Reply Quote Bar */}
+            <div className="bg-white border-t border-slate-200">
+              
+              {/* Replying Preview Banner */}
+              {replyingTo && (
+                <div className="px-5 py-2 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between animate-in slide-in-from-bottom-2">
+                  <div className="flex items-center gap-2.5 text-xs text-slate-700">
+                    <Reply className="w-4 h-4 text-blue-600 shrink-0" />
+                    <div>
+                      <span className="font-bold text-blue-600 mr-2">
+                        Replying to {replyingTo.sender === "freelancer" ? "Yourself" : activeConv.clientName}:
+                      </span>
+                      <span className="text-slate-500 truncate inline-block max-w-md align-bottom">
+                        {replyingTo.text}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setReplyingTo(null)}
+                    className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
 
-              <input 
-                type="text"
-                placeholder="Type your message, milestone update, or share git pull request..."
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-800 placeholder:text-slate-400"
-              />
+              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="p-4 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsSubmitModalOpen(true)}
+                  className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
+                  title="Attach code snippet or file"
+                >
+                  <Paperclip className="w-4 h-4" />
+                </button>
 
-              <button
-                type="submit"
-                disabled={!inputText.trim()}
-                className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-40 transition-all"
-              >
-                <Send className="w-4 h-4" /> Send
-              </button>
-            </form>
+                <input 
+                  type="text"
+                  placeholder={replyingTo ? "Type your reply..." : "Type your message, milestone update, or share git pull request..."}
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-800 placeholder:text-slate-400"
+                />
+
+                <button
+                  type="submit"
+                  disabled={!inputText.trim()}
+                  className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-40 transition-all"
+                >
+                  <Send className="w-4 h-4" /> Send
+                </button>
+              </form>
+            </div>
 
           </div>
 
         </div>
+
+        {/* Modal: Full-Screen Document & Image Gallery Viewer */}
+        {galleryMedia && (
+          <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-white rounded-3xl max-w-2xl w-full border border-slate-200 shadow-2xl p-6 relative overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setGalleryMedia(null)}
+                className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 uppercase">
+                  Media Inspector
+                </span>
+                <span className="text-xs text-slate-400 font-medium">Verified Deliverable Attachment</span>
+              </div>
+              <h2 className="text-lg font-black text-slate-900 mb-1">
+                {galleryMedia.title}
+              </h2>
+              <p className="text-xs text-slate-500 mb-4">{galleryMedia.detail}</p>
+
+              {galleryMedia.imageUrl ? (
+                <div className="rounded-2xl overflow-hidden border border-slate-200 mb-4 max-h-[60vh] bg-slate-900 flex items-center justify-center">
+                  <img 
+                    src={galleryMedia.imageUrl} 
+                    alt={galleryMedia.title}
+                    className="w-full h-auto object-contain max-h-[58vh]"
+                  />
+                </div>
+              ) : (
+                <div className="p-8 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-3 mb-4">
+                  <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto">
+                    <FileText className="w-7 h-7" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-800">Portable Document Format (.pdf)</h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Complete 10-page technical research paper formatted for PayPilot AI verification.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  Virus & Integrity Checked
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(galleryMedia.imageUrl || galleryMedia.url || window.location.href);
+                      setToastMsg("Media URL copied to clipboard!");
+                      setTimeout(() => setToastMsg(null), 2500);
+                    }}
+                    className="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" /> Copy Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setToastMsg("Downloading deliverable asset...");
+                      setTimeout(() => setToastMsg(null), 2500);
+                    }}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download Asset
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Side Drawer: Starred / Pinned Messages */}
+        {isStarredDrawerOpen && (
+          <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+            <div className="w-full max-w-md bg-white h-full shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between animate-in slide-in-from-right duration-200">
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
+                    <h3 className="text-base font-black text-slate-900">Starred & Pinned Messages</h3>
+                  </div>
+                  <button
+                    onClick={() => setIsStarredDrawerOpen(false)}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <p className="text-xs text-slate-500 mb-4">
+                  Quick access to important client requirements, code links, and milestone specifications.
+                </p>
+
+                {starredMessagesList.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100">
+                    <Star className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs font-bold text-slate-700">No starred messages yet</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Hover any chat bubble and click the star icon to pin it here.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+                    {starredMessagesList.map((st) => (
+                      <div key={st.id} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1.5 relative group">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-blue-600">
+                            {st.sender === "freelancer" ? "You" : activeConv.clientName}
+                          </span>
+                          <span className="text-slate-400 font-medium">{st.time}</span>
+                        </div>
+                        <p className="text-xs text-slate-800 leading-relaxed">{st.text}</p>
+                        {st.attachment && (
+                          <div className="p-2 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
+                            <Paperclip className="w-3.5 h-3.5 text-blue-600" />
+                            <span className="truncate">{st.attachment.title}</span>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStar(st.id)}
+                          className="text-[11px] text-rose-500 font-semibold hover:underline cursor-pointer block pt-1"
+                        >
+                          Unpin message
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsStarredDrawerOpen(false)}
+                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal: Submit Milestone Deliverable from Chat */}
         {isSubmitModalOpen && (
@@ -745,77 +1202,6 @@ export default function FreelancerMessagesPage() {
           </div>
         )}
 
-        {/* Side Drawer: Contract Scope & Criteria */}
-        {isContractDrawerOpen && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-            <div className="w-full max-w-md bg-white h-full shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between animate-in slide-in-from-right duration-200">
-              <div>
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-                  <div>
-                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                      {activeConv.escrowId}
-                    </span>
-                    <h3 className="text-base font-black text-slate-900 mt-1">Contract Scope</h3>
-                  </div>
-                  <button
-                    onClick={() => setIsContractDrawerOpen(false)}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Target Milestone</p>
-                    <p className="text-sm font-bold text-slate-900">{activeConv.milestoneTitle}</p>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200/60 text-xs">
-                      <span className="text-slate-500">Milestone Due:</span>
-                      <strong className="text-slate-800">{activeConv.dueDate}</strong>
-                    </div>
-                    <div className="flex items-center justify-between mt-1 text-xs">
-                      <span className="text-slate-500">Secured Escrow:</span>
-                      <strong className="text-emerald-700 font-black">₹{activeConv.escrowAmount.toLocaleString()}</strong>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Milestone Acceptance Criteria
-                    </h4>
-                    <ul className="space-y-2 text-xs text-slate-600">
-                      {activeConv.criteria.map((cr, idx) => (
-                        <li key={idx} className="flex items-start gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
-                          <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                          <span>{cr}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-100 text-xs text-slate-700 flex items-start gap-2.5">
-                    <Shield className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-blue-900 block font-bold">PayPal Smart Escrow Locked</strong>
-                      Client deposit is fully authorized and held by PayPal. Funds will release to your wallet immediately when acceptance criteria are met.
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsContractDrawerOpen(false)}
-                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Live Audio / Video Call Overlay */}
         {isLiveCallActive && (
           <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
@@ -895,6 +1281,7 @@ export default function FreelancerMessagesPage() {
                       sender: "system",
                       text: `Audio call ended`,
                       time: "Just now",
+                      dateGroup: "Today",
                       callEvent: {
                         type: "ended",
                         duration: durFormatted
@@ -914,6 +1301,77 @@ export default function FreelancerMessagesPage() {
                   <span>End Call</span>
                 </button>
 
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Side Drawer: Contract Scope & Criteria */}
+        {isContractDrawerOpen && (
+          <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+            <div className="w-full max-w-md bg-white h-full shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between animate-in slide-in-from-right duration-200">
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                  <div>
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                      {activeConv.escrowId}
+                    </span>
+                    <h3 className="text-base font-black text-slate-900 mt-1">Contract Scope</h3>
+                  </div>
+                  <button
+                    onClick={() => setIsContractDrawerOpen(false)}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Target Milestone</p>
+                    <p className="text-sm font-bold text-slate-900">{activeConv.milestoneTitle}</p>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200/60 text-xs">
+                      <span className="text-slate-500">Milestone Due:</span>
+                      <strong className="text-slate-800">{activeConv.dueDate}</strong>
+                    </div>
+                    <div className="flex items-center justify-between mt-1 text-xs">
+                      <span className="text-slate-500">Secured Escrow:</span>
+                      <strong className="text-emerald-700 font-black">₹{activeConv.escrowAmount.toLocaleString()}</strong>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Milestone Acceptance Criteria
+                    </h4>
+                    <ul className="space-y-2 text-xs text-slate-600">
+                      {activeConv.criteria.map((cr, idx) => (
+                        <li key={idx} className="flex items-start gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                          <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                          <span>{cr}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-100 text-xs text-slate-700 flex items-start gap-2.5">
+                    <Shield className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-blue-900 block font-bold">PayPal Smart Escrow Locked</strong>
+                      Client deposit is fully authorized and held by PayPal. Funds will release to your wallet immediately when acceptance criteria are met.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsContractDrawerOpen(false)}
+                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Done
+                </button>
               </div>
             </div>
           </div>
