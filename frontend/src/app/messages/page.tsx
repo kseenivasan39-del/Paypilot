@@ -6,7 +6,7 @@ import {
   Bell, ChevronDown, Search, Edit, Phone, Video, MoreVertical, 
   Paperclip, Smile, Mic, Send, FileText, Download, Sparkles, 
   ChevronRight, ArrowRight, CheckCheck, Briefcase, PhoneOff, MicOff,
-  X, Check
+  X, Check, CornerUpLeft, Pin, Star
 } from "lucide-react";
 import Link from "next/link";
 import AppSidebar from "@/components/AppSidebar";
@@ -23,6 +23,15 @@ interface MessageItem {
   isCallLog?: boolean;
   callType?: "audio" | "video";
   callDuration?: string;
+  isDelivered?: boolean;
+  isRead?: boolean;
+  isPinned?: boolean;
+  quotedMessage?: {
+    id: string;
+    sender: "client" | "freelancer";
+    senderName: string;
+    text: string;
+  };
   attachment?: {
     name: string;
     size: string;
@@ -53,7 +62,7 @@ export default function Messages() {
     {
       id: "t1",
       name: "Rahul Kumar",
-      avatar: "https://i.pravatar.cc/150?u=rahul",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
       projectTitle: "React Dashboard for College Project",
       unread: true,
       status: "Online",
@@ -72,25 +81,34 @@ export default function Messages() {
           id: "m1",
           sender: "freelancer",
           text: "Hi Sarah! I've reviewed the project requirements. I can complete the React dashboard within 5 days as discussed.",
-          time: "10:20 AM"
+          time: "10:20 AM",
+          isDelivered: true,
+          isRead: true
         },
         {
           id: "m2",
           sender: "client",
           text: "Great! Can you also include a dark mode and make it responsive for mobile devices?",
-          time: "10:22 AM"
+          time: "10:22 AM",
+          isDelivered: true,
+          isRead: true
         },
         {
           id: "m3",
           sender: "freelancer",
           text: "Sure, I can include both dark mode and full responsiveness. The cost will remain the same (₹3,500) and delivery in 5 days.",
-          time: "10:25 AM"
+          time: "10:25 AM",
+          isDelivered: true,
+          isRead: true,
+          isPinned: true
         },
         {
           id: "m4",
           sender: "freelancer",
           text: "Here is the milestone outline and design proposal.",
           time: "10:25 AM",
+          isDelivered: true,
+          isRead: true,
           attachment: {
             name: "Project_Proposal.pdf",
             size: "248 KB",
@@ -101,20 +119,24 @@ export default function Messages() {
           id: "m5",
           sender: "client",
           text: "Looks good! Let's proceed. I'll create the payment through PayPal and share the contract.",
-          time: "10:28 AM"
+          time: "10:28 AM",
+          isDelivered: true,
+          isRead: true
         },
         {
           id: "m6",
           sender: "freelancer",
           text: "Perfect! I'm ready to get started.",
-          time: "10:30 AM"
+          time: "10:30 AM",
+          isDelivered: true,
+          isRead: true
         }
       ]
     },
     {
       id: "t2",
       name: "Priya Sharma",
-      avatar: "https://i.pravatar.cc/150?u=priya",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       projectTitle: "Logo Design for Startup",
       unread: false,
       status: "Online",
@@ -133,20 +155,24 @@ export default function Messages() {
           id: "p1",
           sender: "freelancer",
           text: "Hi Sarah! I've uploaded the final SVG and high-resolution export files.",
-          time: "Yesterday"
+          time: "Yesterday",
+          isDelivered: true,
+          isRead: true
         },
         {
           id: "p2",
           sender: "client",
           text: "Thank you Priya! Checking the files now.",
-          time: "Yesterday"
+          time: "Yesterday",
+          isDelivered: true,
+          isRead: true
         }
       ]
     },
     {
       id: "t3",
       name: "Arjun Menon",
-      avatar: "https://i.pravatar.cc/150?u=arjun",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
       projectTitle: "10-Page Solar Power Report",
       unread: false,
       status: "Offline",
@@ -165,20 +191,24 @@ export default function Messages() {
           id: "a1",
           sender: "freelancer",
           text: "Can you share the raw solar generation dataset so I can complete the chart models?",
-          time: "Oct 5"
+          time: "Oct 5",
+          isDelivered: true,
+          isRead: true
         },
         {
           id: "a2",
           sender: "client",
           text: "Sent! Let me know if you need anything else.",
-          time: "Oct 5"
+          time: "Oct 5",
+          isDelivered: true,
+          isRead: true
         }
       ]
     },
     {
       id: "t4",
       name: "Support Team",
-      avatar: "https://i.pravatar.cc/150?u=support",
+      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
       projectTitle: "PayPilot Customer Support",
       unread: false,
       status: "Online",
@@ -197,7 +227,9 @@ export default function Messages() {
           id: "s1",
           sender: "freelancer",
           text: "Hello Sarah! Your inquiry regarding milestone payment authorizations on PayPal sandbox has been resolved.",
-          time: "Oct 2"
+          time: "Oct 2",
+          isDelivered: true,
+          isRead: true
         }
       ]
     }
@@ -207,6 +239,13 @@ export default function Messages() {
   const [filterTab, setFilterTab] = useState<"all" | "projects" | "unread">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [inputText, setInputText] = useState("");
+  
+  // WhatsApp Features State
+  const [isTyping, setIsTyping] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<MessageItem | null>(null);
+  const [showPinnedOnly, setShowPinnedOnly] = useState(false);
+
+  // Calling state
   const [callingState, setCallingState] = useState<"none" | "audio" | "video">("none");
   const [callStatus, setCallStatus] = useState<"ringing" | "connected" | "ended">("ringing");
   const [callDuration, setCallDuration] = useState(0);
@@ -217,7 +256,6 @@ export default function Messages() {
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [freelancerList, setFreelancerList] = useState<any[]>([]);
   const [loadingFreelancers, setLoadingFreelancers] = useState(false);
-  const [freelancerSearch, setFreelancerSearch] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeThread = threads.find((t) => t.id === activeThreadId) || threads[0];
@@ -247,7 +285,7 @@ export default function Messages() {
     const newThread: Thread = {
       id: newId,
       name: f.user?.full_name || f.name || "Freelancer",
-      avatar: f.user?.avatar_url || f.avatar || `https://i.pravatar.cc/150?u=${newId}`,
+      avatar: f.user?.avatar_url || f.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
       projectTitle: f.title || "Custom Consultation",
       unread: false,
       status: "Online",
@@ -266,7 +304,9 @@ export default function Messages() {
           id: `m-init-${Date.now()}`,
           sender: "freelancer",
           text: `Hi Sarah! Thanks for reaching out. How can I help with your project today?`,
-          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isDelivered: true,
+          isRead: true
         }
       ]
     };
@@ -278,7 +318,21 @@ export default function Messages() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeThread.messages]);
+  }, [activeThread.messages, isTyping]);
+
+  const togglePinMessage = (msgId: string) => {
+    setThreads((prev) =>
+      prev.map((t) => {
+        if (t.id !== activeThreadId) return t;
+        return {
+          ...t,
+          messages: t.messages.map((m) =>
+            m.id === msgId ? { ...m, isPinned: !m.isPinned } : m
+          )
+        };
+      })
+    );
+  };
 
   const handleSendMessage = (textToSend?: string) => {
     const text = (textToSend || inputText).trim();
@@ -288,7 +342,15 @@ export default function Messages() {
       id: `msg-${Date.now()}`,
       sender: "client",
       text,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      isDelivered: true,
+      isRead: false,
+      quotedMessage: replyingTo ? {
+        id: replyingTo.id,
+        sender: replyingTo.sender,
+        senderName: replyingTo.sender === "client" ? "You" : activeThread.name,
+        text: replyingTo.text
+      } : undefined
     };
 
     setThreads((prev) =>
@@ -296,9 +358,31 @@ export default function Messages() {
     );
 
     setInputText("");
+    setReplyingTo(null);
 
-    // Automated simulated response from freelancer after 1.2 seconds
+    // Trigger double-tick read after 600ms
     setTimeout(() => {
+      setThreads((prev) =>
+        prev.map((t) => {
+          if (t.id !== activeThreadId) return t;
+          return {
+            ...t,
+            messages: t.messages.map((m) =>
+              m.id === newMsg.id ? { ...m, isRead: true } : m
+            )
+          };
+        })
+      );
+    }, 600);
+
+    // Show WhatsApp Typing Indicator after 900ms
+    setTimeout(() => {
+      setIsTyping(true);
+    }, 900);
+
+    // Automated simulated response from freelancer after 2.4 seconds
+    setTimeout(() => {
+      setIsTyping(false);
       const autoReplyText = 
         activeThread.id === "t4"
           ? "Thank you for contacting PayPilot Support! An agent has recorded your note."
@@ -308,13 +392,15 @@ export default function Messages() {
         id: `reply-${Date.now()}`,
         sender: "freelancer",
         text: autoReplyText,
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        isDelivered: true,
+        isRead: true
       };
 
       setThreads((prev) =>
         prev.map((t) => (t.id === activeThreadId ? { ...t, messages: [...t.messages, replyMsg] } : t))
       );
-    }, 1200);
+    }, 2400);
   };
 
   // Timer for active call duration
@@ -371,32 +457,44 @@ export default function Messages() {
   };
 
   const handleGenerateSmartReply = () => {
-    const smart = `Thanks ${activeThread.name.split(" ")[0]}, let's move forward with this approach. I will monitor the milestone progress.`;
-    setInputText(smart);
+    const freshReplies = [
+      "I've verified the milestone scope. Looks ready to proceed!",
+      "Could you push the latest commit so I can test locally?",
+      "Payment of ₹3,500 has been secured in PayPal escrow."
+    ];
+    setThreads((prev) =>
+      prev.map((t) => (t.id === activeThreadId ? { ...t, suggestedReplies: freshReplies } : t))
+    );
   };
 
+  // Filtering threads
   const filteredThreads = threads.filter((t) => {
-    const matchesSearch =
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.projectTitle.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (filterTab === "unread") return matchesSearch && t.unread;
-    if (filterTab === "projects") return matchesSearch && t.id !== "t4";
-    return matchesSearch;
+    if (filterTab === "unread" && !t.unread) return false;
+    if (filterTab === "projects" && t.id === "t4") return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return (
+        t.name.toLowerCase().includes(q) ||
+        t.projectTitle.toLowerCase().includes(q) ||
+        t.messages.some((m) => m.text.toLowerCase().includes(q))
+      );
+    }
+    return true;
   });
 
+  const pinnedMessages = activeThread.messages.filter((m) => m.isPinned);
+
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] font-sans overflow-hidden h-screen">
-      
+    <div className="flex h-screen bg-[#F8FAFC] font-sans antialiased overflow-hidden">
       {/* Sidebar */}
       <AppSidebar activePage="messages" />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0">
+      {/* Main Messages Container */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden">
         
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0">
-          <div className="relative w-[400px]">
+        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 z-10">
+          <div className="relative w-96">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
               type="text" 
@@ -409,7 +507,7 @@ export default function Messages() {
           
           <div className="flex items-center gap-5">
             <NotificationBell />
-            <UserProfileMenu />
+            <UserProfileMenu fallbackName="Sarah Johnson" fallbackRole="Client" />
           </div>
         </header>
 
@@ -470,7 +568,11 @@ export default function Messages() {
                     {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600"></div>}
                     <div className="flex gap-3">
                       <div className="w-11 h-11 rounded-full bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center font-bold text-slate-600">
-                        {thread.name.split(" ").map((n) => n[0]).join("")}
+                        {thread.avatar ? (
+                          <img src={thread.avatar} alt={thread.name} className="w-full h-full object-cover" />
+                        ) : (
+                          thread.name.split(" ").map((n) => n[0]).join("")
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start mb-0.5">
@@ -499,8 +601,12 @@ export default function Messages() {
             <div className="h-[68px] px-6 border-b border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">
-                    {activeThread.name.split(" ").map((n) => n[0]).join("")}
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center overflow-hidden">
+                    {activeThread.avatar ? (
+                      <img src={activeThread.avatar} alt={activeThread.name} className="w-full h-full object-cover" />
+                    ) : (
+                      activeThread.name.split(" ").map((n) => n[0]).join("")
+                    )}
                   </div>
                   {activeThread.status === "Online" && (
                     <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></div>
@@ -517,17 +623,35 @@ export default function Messages() {
                 <div className="w-px h-6 bg-slate-200 mx-2"></div>
                 <span className="text-xs font-semibold text-slate-500 truncate max-w-[280px]">{activeThread.projectTitle}</span>
               </div>
-              <div className="flex items-center gap-1">
+              
+              <div className="flex items-center gap-2">
+                {/* Pinned Messages Pill Toggle */}
+                {pinnedMessages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPinnedOnly(!showPinnedOnly)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      showPinnedOnly
+                        ? "bg-amber-100 text-amber-800 border border-amber-300"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                    title="View pinned messages"
+                  >
+                    <Pin className="w-3 h-3 text-amber-600 fill-amber-500" />
+                    <span>{pinnedMessages.length} Pinned</span>
+                  </button>
+                )}
+
                 <button 
                   onClick={() => startCall("audio")}
-                  className="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-blue-600 transition-colors"
+                  className="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-blue-600 transition-colors cursor-pointer"
                   title="Audio Call"
                 >
                   <Phone className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => startCall("video")}
-                  className="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-blue-600 transition-colors"
+                  className="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-blue-600 transition-colors cursor-pointer"
                   title="Video Call"
                 >
                   <Video className="w-4 h-4" />
@@ -535,14 +659,34 @@ export default function Messages() {
               </div>
             </div>
 
+            {/* Pinned Messages Drawer if Open */}
+            {showPinnedOnly && (
+              <div className="p-3 bg-amber-50/70 border-b border-amber-200 flex items-center justify-between text-xs text-amber-900">
+                <div className="flex items-center gap-2 truncate">
+                  <Pin className="w-4 h-4 text-amber-600 fill-amber-500 shrink-0" />
+                  <span className="font-bold">Pinned: </span>
+                  <span className="truncate italic">"{pinnedMessages[0]?.text}"</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPinnedOnly(false)}
+                  className="text-amber-700 hover:text-amber-900 font-bold ml-2 shrink-0 cursor-pointer text-[11px]"
+                >
+                  Close
+                </button>
+              </div>
+            )}
+
             {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-5">
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
               
               <div className="flex justify-center my-1">
                 <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold">Today</span>
               </div>
 
               {activeThread.messages.map((msg) => {
+                if (showPinnedOnly && !msg.isPinned) return null;
+
                 // Render call log event banner if message is a call
                 if (msg.isCallLog) {
                   return (
@@ -562,14 +706,51 @@ export default function Messages() {
                 return (
                   <div 
                     key={msg.id} 
-                    className={`flex gap-3 max-w-[80%] ${isClient ? "self-end flex-row-reverse" : ""}`}
+                    className={`flex gap-3 max-w-[80%] group ${isClient ? "self-end flex-row-reverse" : ""}`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold text-xs mt-auto mb-4 ${isClient ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-700"}`}>
-                      {isClient ? "SJ" : activeThread.name.split(" ").map((n) => n[0]).join("")}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold text-xs mt-auto mb-4 overflow-hidden ${isClient ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-700"}`}>
+                      {isClient ? "SJ" : (
+                        activeThread.avatar ? (
+                          <img src={activeThread.avatar} alt={activeThread.name} className="w-full h-full object-cover" />
+                        ) : activeThread.name.split(" ").map((n) => n[0]).join("")
+                      )}
                     </div>
 
-                    <div className={`flex flex-col ${isClient ? "items-end" : "items-start"}`}>
+                    <div className={`flex flex-col ${isClient ? "items-end" : "items-start"} relative`}>
+                      
+                      {/* WhatsApp Hover Actions: Reply & Pin */}
+                      <div className={`absolute top-0 -mt-6 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 rounded-full px-2 py-0.5 shadow-sm z-10 ${isClient ? "right-0" : "left-0"}`}>
+                        <button
+                          type="button"
+                          onClick={() => setReplyingTo(msg)}
+                          className="p-1 hover:text-blue-600 text-slate-400 cursor-pointer"
+                          title="Click to reply (WhatsApp quote)"
+                        >
+                          <CornerUpLeft className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => togglePinMessage(msg.id)}
+                          className={`p-1 cursor-pointer ${msg.isPinned ? "text-amber-500" : "hover:text-amber-500 text-slate-400"}`}
+                          title={msg.isPinned ? "Unpin message" : "Pin message"}
+                        >
+                          <Pin className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Main Bubble */}
                       <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${isClient ? "bg-blue-600 text-white rounded-br-none shadow-sm" : "bg-[#F1F5F9] text-slate-700 rounded-bl-none"}`}>
+                        
+                        {/* Nested Quoted WhatsApp Message */}
+                        {msg.quotedMessage && (
+                          <div className={`mb-2 p-2 rounded-xl text-xs border-l-4 ${isClient ? "bg-blue-700/60 border-cyan-300 text-blue-50" : "bg-slate-200/70 border-blue-600 text-slate-800"}`}>
+                            <span className="font-bold block text-[10px] text-cyan-200">
+                              {msg.quotedMessage.senderName}
+                            </span>
+                            <p className="truncate italic">{msg.quotedMessage.text}</p>
+                          </div>
+                        )}
+
                         {msg.text}
                       </div>
 
@@ -585,24 +766,75 @@ export default function Messages() {
                           </div>
                           <button 
                             onClick={() => alert(`Downloading sample deliverable archive: ${msg.attachment?.name}`)}
-                            className="text-blue-600 hover:text-blue-700 p-1 rounded-full hover:bg-blue-50"
+                            className="text-blue-600 hover:text-blue-700 p-1 rounded-full hover:bg-blue-50 cursor-pointer"
                           >
                             <Download className="w-4 h-4" />
                           </button>
                         </div>
                       )}
 
-                      <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400 font-medium">
+                      {/* Timestamp & Double Blue Ticks */}
+                      <div className="flex items-center gap-1.5 mt-1 text-[10px] text-slate-400 font-medium">
+                        {msg.isPinned && (
+                          <span className="flex items-center gap-0.5 text-amber-600 font-bold">
+                            <Pin className="w-2.5 h-2.5 fill-amber-500" /> Pinned
+                          </span>
+                        )}
                         <span>{msg.time}</span>
-                        {isClient && <CheckCheck className="w-3.5 h-3.5 text-blue-500" />}
+                        {isClient && (
+                          <span title={msg.isRead ? "Read (Double blue tick)" : "Delivered"}>
+                            <CheckCheck className={`w-3.5 h-3.5 ${msg.isRead ? "text-cyan-500 stroke-[2.5]" : "text-slate-400"}`} />
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                 );
               })}
 
+              {/* WhatsApp Live Typing Indicator */}
+              {isTyping && (
+                <div className="flex gap-3 max-w-[80%] items-end animate-in fade-in">
+                  <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 font-bold text-xs overflow-hidden">
+                    {activeThread.avatar ? (
+                      <img src={activeThread.avatar} alt={activeThread.name} className="w-full h-full object-cover" />
+                    ) : (
+                      activeThread.name.split(" ").map((n) => n[0]).join("")
+                    )}
+                  </div>
+                  <div className="bg-[#F1F5F9] text-slate-500 px-4 py-2.5 rounded-2xl rounded-bl-none flex items-center gap-1.5 shadow-sm">
+                    <span className="text-xs font-medium text-slate-600">{activeThread.name.split(" ")[0]} is typing</span>
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce"></span>
+                  </div>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
+
+            {/* Quoted Message Preview Bar before Sending */}
+            {replyingTo && (
+              <div className="px-6 py-2 bg-blue-50/80 border-t border-blue-200 flex items-center justify-between text-xs animate-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-2 border-l-4 border-blue-600 pl-2 min-w-0">
+                  <CornerUpLeft className="w-4 h-4 text-blue-600 shrink-0" />
+                  <div className="truncate">
+                    <span className="font-bold text-blue-900 block text-[11px]">
+                      Replying to {replyingTo.sender === "client" ? "Yourself" : activeThread.name}
+                    </span>
+                    <span className="text-slate-600 truncate block">{replyingTo.text}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReplyingTo(null)}
+                  className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
 
             {/* Input Area */}
             <div className="p-4 border-t border-slate-100 bg-white">
@@ -616,7 +848,7 @@ export default function Messages() {
                 <button 
                   type="button"
                   onClick={() => alert("Upload file: Select PDF, ZIP archive or Figma link to share with freelancer.")}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full transition-colors cursor-pointer"
                   title="Attach file"
                 >
                   <Paperclip className="w-4 h-4" />
@@ -631,7 +863,7 @@ export default function Messages() {
                 <button 
                   type="submit"
                   disabled={!inputText.trim()}
-                  className="w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors shadow-md disabled:opacity-40"
+                  className="w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors shadow-md disabled:opacity-40 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5 ml-0.5" />
                 </button>
@@ -706,7 +938,7 @@ export default function Messages() {
                 
                 <button 
                   onClick={handleGenerateSmartReply}
-                  className="w-full bg-white hover:bg-indigo-50 text-indigo-600 font-bold text-xs py-2 rounded-xl border border-indigo-200 transition-colors shadow-sm flex justify-center items-center gap-1.5"
+                  className="w-full bg-white hover:bg-indigo-50 text-indigo-600 font-bold text-xs py-2 rounded-xl border border-indigo-200 transition-colors shadow-sm flex justify-center items-center gap-1.5 cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5" /> Suggest Smart Reply
                 </button>
@@ -721,7 +953,7 @@ export default function Messages() {
                   <button 
                     key={i}
                     onClick={() => handleSendMessage(reply)}
-                    className="w-full bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 text-left px-3 py-2.5 rounded-xl transition-all flex items-center justify-between group"
+                    className="w-full bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 text-left px-3 py-2.5 rounded-xl transition-all flex items-center justify-between group cursor-pointer"
                   >
                     <span className="text-xs font-medium text-slate-700 group-hover:text-blue-700">{reply}</span>
                     <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-blue-500 shrink-0" />
@@ -738,88 +970,80 @@ export default function Messages() {
       {/* Call Modal */}
       {callingState !== "none" && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#0F172A] text-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-800 animate-in zoom-in-95 duration-200 relative overflow-hidden">
-            
-            {/* Pulsing ring animation */}
-            <div className="relative mb-5 inline-block">
-              <div className={`w-24 h-24 rounded-full bg-blue-600 text-white font-bold text-3xl flex items-center justify-center mx-auto border-4 border-blue-400/30 ${callStatus === "ringing" ? "animate-pulse ring-8 ring-blue-500/20" : ""}`}>
-                {activeThread.name.split(" ").map((n) => n[0]).join("")}
+          <div className="bg-[#0B1120] text-white border border-slate-800 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative">
+            <div className="relative mx-auto w-24 h-24 mb-4">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-500/40 shadow-xl mx-auto flex items-center justify-center bg-slate-800">
+                {activeThread.avatar ? (
+                  <img src={activeThread.avatar} alt={activeThread.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl font-bold">{activeThread.name[0]}</span>
+                )}
               </div>
-              {callStatus === "connected" && (
-                <div className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-2 border-[#0F172A] rounded-full flex items-center justify-center">
-                  <Check className="w-3 h-3 text-white" />
-                </div>
+              {callStatus === "ringing" && (
+                <span className="absolute inset-0 rounded-full border-2 border-blue-400 animate-ping pointer-events-none opacity-40"></span>
               )}
             </div>
 
-            <h3 className="text-xl font-bold text-white">{activeThread.name}</h3>
-            
-            {/* Status indicator */}
-            <div className="mt-1.5 flex items-center justify-center gap-2">
-              {callStatus === "ringing" ? (
-                <p className="text-xs text-blue-300 font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
-                  Ringing... (Simulating other party)
-                </p>
-              ) : (
-                <p className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  Connected • {Math.floor(callDuration / 60)}:{callDuration % 60 < 10 ? `0${callDuration % 60}` : callDuration % 60}
-                </p>
-              )}
-            </div>
-
-            <p className="text-[11px] text-slate-400 mt-1">
-              {callingState === "video" ? "PayPilot End-to-End Encrypted Video Call" : "PayPilot HD Voice Link"}
+            <h3 className="text-xl font-black text-white">{activeThread.name}</h3>
+            <p className="text-xs text-blue-400 font-semibold mt-1">
+              {callingState === "video" ? "PayPilot Encrypted Video Call" : "PayPilot Encrypted Audio Call"}
             </p>
 
-            {/* Answer simulation banner when ringing */}
+            <div className="my-5 py-2 px-4 rounded-xl bg-slate-800/60 inline-block text-xs font-mono font-bold text-slate-300">
+              {callStatus === "ringing" ? (
+                <span className="animate-pulse text-amber-400">Ringing...</span>
+              ) : (
+                <span className="text-emerald-400">
+                  Connected • {Math.floor(callDuration / 60)}:{(callDuration % 60).toString().padStart(2, "0")}
+                </span>
+              )}
+            </div>
+
             {callStatus === "ringing" && (
-              <div className="mt-6 bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 text-left">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] text-slate-300 font-medium">Remote user preview:</span>
-                  <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full font-bold">Incoming Call</span>
-                </div>
+              <div className="mb-4">
                 <button
                   type="button"
                   onClick={answerCallSimulated}
-                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-900/30"
+                  className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
                 >
-                  <Phone className="w-3.5 h-3.5" /> Accept Call as {activeThread.name.split(" ")[0]}
+                  Simulate Answer
                 </button>
               </div>
             )}
 
-            {/* In-Call Controls */}
-            <div className="flex justify-center items-center gap-4 mt-7">
-              <button 
+            <div className="flex items-center justify-center gap-4 pt-2">
+              <button
                 type="button"
                 onClick={() => setIsMuted(!isMuted)}
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isMuted ? "bg-red-500 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-200"}`}
-                title={isMuted ? "Unmute" : "Mute"}
+                className={`p-3.5 rounded-full transition-all cursor-pointer ${
+                  isMuted ? "bg-red-500/20 text-red-400 border border-red-500/40" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                }`}
+                title={isMuted ? "Unmute Mic" : "Mute Mic"}
               >
-                <MicOff className="w-5 h-5" />
+                {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </button>
 
-              {callingState === "video" && (
-                <button 
-                  type="button"
-                  onClick={() => setIsCameraOff(!isCameraOff)}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isCameraOff ? "bg-red-500 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-200"}`}
-                  title={isCameraOff ? "Turn Video On" : "Turn Video Off"}
-                >
-                  <Video className="w-5 h-5" />
-                </button>
-              )}
-
-              <button 
+              <button
                 type="button"
                 onClick={endCall}
-                className="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-lg shadow-red-600/40 transition-colors"
+                className="p-4 bg-red-600 hover:bg-red-500 text-white rounded-full transition-all shadow-lg shadow-red-600/30 cursor-pointer"
                 title="End Call"
               >
                 <PhoneOff className="w-6 h-6" />
               </button>
+
+              {callingState === "video" && (
+                <button
+                  type="button"
+                  onClick={() => setIsCameraOff(!isCameraOff)}
+                  className={`p-3.5 rounded-full transition-all cursor-pointer ${
+                    isCameraOff ? "bg-red-500/20 text-red-400 border border-red-500/40" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  }`}
+                  title={isCameraOff ? "Turn Camera On" : "Turn Camera Off"}
+                >
+                  <Video className="w-5 h-5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -827,128 +1051,47 @@ export default function Messages() {
 
       {/* New Conversation Modal */}
       {showNewChatModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-150"
-          >
-            {/* Header */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
-                  <Edit className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-sm">New Conversation</h3>
-                  <p className="text-[11px] text-slate-500">Select a freelancer to start messaging</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowNewChatModal(false)}
-                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 flex items-center justify-center transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 relative">
+            <button
+              onClick={() => setShowNewChatModal(false)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-            {/* Search Input */}
-            <div className="p-3 border-b border-slate-100 bg-white">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={freelancerSearch}
-                  onChange={(e) => setFreelancerSearch(e.target.value)}
-                  placeholder="Search freelancers by name or skill..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  autoFocus
-                />
-              </div>
-            </div>
+            <h3 className="text-lg font-black text-slate-900 mb-1">Start New Conversation</h3>
+            <p className="text-xs text-slate-500 mb-4">Select a verified freelancer to chat with.</p>
 
-            {/* Freelancer List */}
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 p-2">
+            <div className="space-y-2 max-h-72 overflow-y-auto">
               {loadingFreelancers ? (
-                <div className="p-8 text-center text-xs text-slate-500">
-                  Loading talent directory...
-                </div>
-              ) : freelancerList.filter((f) => {
-                if (!freelancerSearch.trim()) return true;
-                const q = freelancerSearch.toLowerCase();
-                const name = (f.user?.full_name || f.name || "").toLowerCase();
-                const skills = (f.skills || "").toLowerCase();
-                const title = (f.title || "").toLowerCase();
-                return name.includes(q) || skills.includes(q) || title.includes(q);
-              }).length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-500">
-                  No freelancers found matching &ldquo;{freelancerSearch}&rdquo;
-                </div>
-              ) : (
-                freelancerList.filter((f) => {
-                  if (!freelancerSearch.trim()) return true;
-                  const q = freelancerSearch.toLowerCase();
-                  const name = (f.user?.full_name || f.name || "").toLowerCase();
-                  const skills = (f.skills || "").toLowerCase();
-                  const title = (f.title || "").toLowerCase();
-                  return name.includes(q) || skills.includes(q) || title.includes(q);
-                }).map((f) => {
-                  const name = f.user?.full_name || f.name || "Freelancer";
-                  const avatar = f.user?.avatar_url || `https://i.pravatar.cc/150?u=${f.id || f.user_id}`;
-                  return (
-                    <div
-                      key={f.id || f.user_id}
-                      onClick={() => handleStartConversationWithFreelancer(f)}
-                      className="p-3 flex items-center justify-between hover:bg-blue-50/60 rounded-xl cursor-pointer transition-colors group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img 
-                          src={avatar} 
-                          alt={name}
-                          className="w-10 h-10 rounded-full object-cover border border-slate-200" 
-                        />
-                        <div>
-                          <h4 className="font-bold text-slate-900 text-xs group-hover:text-blue-600 transition-colors">
-                            {name}
-                          </h4>
-                          <p className="text-[11px] text-slate-500 truncate max-w-[200px]">
-                            {f.title || "Specialist"}
-                          </p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] text-amber-500 font-bold">
-                              ★ {f.rating || 4.9}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-medium">
-                              {f.completed_projects_count || 12} jobs done
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-slate-900 block">
-                          {f.hourly_rate ? `${f.currency || "₹"}${f.hourly_rate}/hr` : "Negotiable"}
-                        </span>
-                        <span className="text-[10px] font-bold text-blue-600 group-hover:underline">
-                          Chat &rarr;
-                        </span>
-                      </div>
+                <p className="text-xs text-slate-400 py-4 text-center">Loading freelancers...</p>
+              ) : freelancerList.length > 0 ? (
+                freelancerList.map((f: any) => (
+                  <div
+                    key={f.id}
+                    onClick={() => handleStartConversationWithFreelancer(f)}
+                    className="p-3 rounded-2xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/40 cursor-pointer flex items-center justify-between transition-all"
+                  >
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">{f.user?.full_name || f.name || "Freelancer"}</h4>
+                      <p className="text-[11px] text-slate-500">{f.title || "Specialist"}</p>
                     </div>
-                  );
-                })
+                    <span className="text-xs text-blue-600 font-bold">Chat &rarr;</span>
+                  </div>
+                ))
+              ) : (
+                <div 
+                  onClick={() => handleStartConversationWithFreelancer({ name: "Rahul Kumar", title: "Full Stack Engineer" })}
+                  className="p-3 rounded-2xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/40 cursor-pointer flex items-center justify-between"
+                >
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">Rahul Kumar</h4>
+                    <p className="text-[11px] text-slate-500">Full Stack Engineer & Consultant</p>
+                  </div>
+                  <span className="text-xs text-blue-600 font-bold">Chat &rarr;</span>
+                </div>
               )}
-            </div>
-
-            {/* Footer */}
-            <div className="p-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs">
-              <span className="text-slate-500 text-[11px]">Can&apos;t find someone?</span>
-              <Link 
-                href="/projects/matching" 
-                onClick={() => setShowNewChatModal(false)}
-                className="text-blue-600 hover:underline font-bold text-xs"
-              >
-                Browse Full Talent Directory &rarr;
-              </Link>
             </div>
           </div>
         </div>
