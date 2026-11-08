@@ -5,7 +5,7 @@ import {
   Search, Flame, Clock, DollarSign, CheckCircle2, 
   X, ArrowRight, ShieldCheck, Sparkles, SlidersHorizontal, 
   Star, Building2, Bookmark, Check, BadgeCheck, Compass,
-  TrendingUp, Zap, AlertCircle, Filter
+  TrendingUp, Zap, AlertCircle, Filter, ChevronDown
 } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import NotificationBell from "@/components/NotificationBell";
@@ -49,7 +49,14 @@ export default function FreelancerFindProjectsPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [quickTag, setQuickTag] = useState<string | null>(null);
   const [fastRequiringOnly, setFastRequiringOnly] = useState<boolean>(false);
+
+  // Custom UI Dropdown States
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [isBudgetOpen, setIsBudgetOpen] = useState(false);
+
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
+  const budgetRef = useRef<HTMLDivElement>(null);
 
   const projects: ProjectItem[] = [
     {
@@ -167,7 +174,6 @@ export default function FreelancerFindProjectsPage() {
 
   const categories = ["All", "Web Development", "Data & AI", "FinTech", "Content & Research", "Design"];
 
-  // Trending tags with real-time indicators
   const trendingTags = [
     { name: "React 19", count: "14 jobs", isHot: true },
     { name: "FastAPI", count: "9 jobs", isHot: true },
@@ -177,10 +183,29 @@ export default function FreelancerFindProjectsPage() {
     { name: "Figma", count: "7 jobs", isHot: false }
   ];
 
+  const sortOptions = [
+    { value: "match", label: "AI Match Score" },
+    { value: "budget_high", label: "Budget: High to Low" },
+    { value: "newest", label: "Recently Posted" }
+  ];
+
+  const budgetOptions = [
+    { value: 0, label: "Any Budget" },
+    { value: 3000, label: "₹3,000+" },
+    { value: 5000, label: "₹5,000+" },
+    { value: 8000, label: "₹8,000+" }
+  ];
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
         setIsSearchFocused(false);
+      }
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setIsSortOpen(false);
+      }
+      if (budgetRef.current && !budgetRef.current.contains(event.target as Node)) {
+        setIsBudgetOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -243,6 +268,9 @@ export default function FreelancerFindProjectsPage() {
       setTimeout(() => setToastMsg(null), 3500);
     }, 500);
   };
+
+  const activeSortLabel = sortOptions.find((o) => o.value === sortBy)?.label || "Sort";
+  const activeBudgetLabel = budgetOptions.find((o) => o.value === minBudget)?.label || "Budget";
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800 font-sans">
@@ -355,7 +383,7 @@ export default function FreelancerFindProjectsPage() {
             )}
           </div>
 
-          {/* Categories, Fast Requirements Switch, and Sorters */}
+          {/* Categories, Fast Requirements Switch, and Custom Styled Sorters */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-slate-100">
             
             {/* Category Buttons */}
@@ -379,7 +407,7 @@ export default function FreelancerFindProjectsPage() {
               })}
             </div>
 
-            {/* Fast Requirements Pill & Sorters */}
+            {/* Fast Requirements Pill & Custom Dropdowns */}
             <div className="flex flex-wrap items-center gap-2">
               
               {/* Fast Turnaround Urgent Filter Toggle */}
@@ -397,33 +425,79 @@ export default function FreelancerFindProjectsPage() {
                 {fastRequiringOnly && <X className="w-3 h-3 ml-0.5" />}
               </button>
 
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-slate-400 font-medium">Sort:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e: any) => setSortBy(e.target.value)}
-                  className="bg-transparent font-bold text-slate-700 outline-none cursor-pointer"
+              {/* Custom Sort Dropdown (No ugly browser select) */}
+              <div className="relative" ref={sortRef}>
+                <button
+                  type="button"
+                  onClick={() => { setIsSortOpen(!isSortOpen); setIsBudgetOpen(false); }}
+                  className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs text-slate-700 font-semibold cursor-pointer transition-colors"
                 >
-                  <option value="match">AI Match</option>
-                  <option value="budget_high">Budget (High)</option>
-                  <option value="newest">Newest</option>
-                </select>
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-slate-500 font-normal">Sort:</span>
+                  <span className="font-bold text-slate-900">{activeSortLabel}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isSortOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isSortOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-slate-200 rounded-xl shadow-xl p-1 z-30 animate-in fade-in zoom-in-95 duration-100">
+                    {sortOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setSortBy(opt.value as any);
+                          setIsSortOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                          sortBy === opt.value 
+                            ? "bg-blue-50 text-blue-600 font-bold" 
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span>{opt.label}</span>
+                        {sortBy === opt.value && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
-                <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
-                <select
-                  value={minBudget}
-                  onChange={(e) => setMinBudget(Number(e.target.value))}
-                  className="bg-transparent font-bold text-slate-700 outline-none cursor-pointer"
+              {/* Custom Budget Dropdown (No ugly browser select) */}
+              <div className="relative" ref={budgetRef}>
+                <button
+                  type="button"
+                  onClick={() => { setIsBudgetOpen(!isBudgetOpen); setIsSortOpen(false); }}
+                  className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs text-slate-700 font-semibold cursor-pointer transition-colors"
                 >
-                  <option value="0">Any Budget</option>
-                  <option value="3000">₹3,000+</option>
-                  <option value="5000">₹5,000+</option>
-                  <option value="8000">₹8,000+</option>
-                </select>
+                  <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="font-bold text-slate-900">{activeBudgetLabel}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isBudgetOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isBudgetOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 w-40 bg-white border border-slate-200 rounded-xl shadow-xl p-1 z-30 animate-in fade-in zoom-in-95 duration-100">
+                    {budgetOptions.map((b) => (
+                      <button
+                        key={b.value}
+                        type="button"
+                        onClick={() => {
+                          setMinBudget(b.value);
+                          setIsBudgetOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                          minBudget === b.value 
+                            ? "bg-emerald-50 text-emerald-700 font-bold" 
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span>{b.label}</span>
+                        {minBudget === b.value && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+
             </div>
 
           </div>
@@ -468,7 +542,7 @@ export default function FreelancerFindProjectsPage() {
               <button
                 type="button"
                 onClick={() => { setSearch(""); setSelectedCategory("All"); setMinBudget(0); setQuickTag(null); setFastRequiringOnly(false); }}
-                className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
               >
                 Reset All Filters
               </button>
