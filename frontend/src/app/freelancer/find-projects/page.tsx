@@ -4,7 +4,8 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { 
   Search, Flame, Clock, DollarSign, CheckCircle2, 
   X, ArrowRight, ShieldCheck, Sparkles, SlidersHorizontal, 
-  Star, Building2, Bookmark, Check, BadgeCheck, Compass
+  Star, Building2, Bookmark, Check, BadgeCheck, Compass,
+  TrendingUp, Zap, AlertCircle, Filter
 } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import NotificationBell from "@/components/NotificationBell";
@@ -27,6 +28,7 @@ interface ProjectItem {
   postedTime: string;
   proposalsCount: number;
   featured?: boolean;
+  isUrgentFast?: boolean;
 }
 
 export default function FreelancerFindProjectsPage() {
@@ -46,6 +48,7 @@ export default function FreelancerFindProjectsPage() {
   const [appliedIds, setAppliedIds] = useState<number[]>([]);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [quickTag, setQuickTag] = useState<string | null>(null);
+  const [fastRequiringOnly, setFastRequiringOnly] = useState<boolean>(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const projects: ProjectItem[] = [
@@ -65,7 +68,8 @@ export default function FreelancerFindProjectsPage() {
       description: "Finalize our custom checkout flow, configure webhook triggers on milestone captures, and connect PostgreSQL order history.",
       postedTime: "12m ago",
       proposalsCount: 3,
-      featured: true
+      featured: true,
+      isUrgentFast: true
     },
     {
       id: 202,
@@ -83,14 +87,15 @@ export default function FreelancerFindProjectsPage() {
       description: "Build a responsive analytics panel displaying real-time revenue velocity, simulated escrow releases, and interactive cohort breakdown tables.",
       postedTime: "45m ago",
       proposalsCount: 5,
-      featured: true
+      featured: true,
+      isUrgentFast: false
     },
     {
       id: 203,
       title: "Technical Whitepaper on Autonomous Payment Agents",
       category: "Content & Research",
       budget: 3800,
-      deadlineDays: 4,
+      deadlineDays: 3,
       matchScore: 94,
       clientName: "FinTech Research Group",
       clientRating: 4.88,
@@ -100,7 +105,8 @@ export default function FreelancerFindProjectsPage() {
       skills: ["Technical Writing", "Fintech", "LaTeX", "Escrow Architecture"],
       description: "Draft an authoritative 12-page research study exploring how autonomous evaluation engines streamline escrow releases with automated PayPal captures.",
       postedTime: "2h ago",
-      proposalsCount: 2
+      proposalsCount: 2,
+      isUrgentFast: true
     },
     {
       id: 204,
@@ -117,7 +123,8 @@ export default function FreelancerFindProjectsPage() {
       skills: ["Python", "FastAPI", "SQLAlchemy", "PostgreSQL", "SlowAPI"],
       description: "Implement clean REST endpoints featuring JWT tokens, SlowAPI rate-limiting headers, and Pytest test suites.",
       postedTime: "3h ago",
-      proposalsCount: 4
+      proposalsCount: 4,
+      isUrgentFast: false
     },
     {
       id: 205,
@@ -134,14 +141,15 @@ export default function FreelancerFindProjectsPage() {
       skills: ["Figma", "UI/UX", "Design Systems"],
       description: "Design 24 clean screens for our developer productivity suite with auto-layout tokens, accessibility guidelines, and interactive prototypes.",
       postedTime: "5h ago",
-      proposalsCount: 7
+      proposalsCount: 7,
+      isUrgentFast: false
     },
     {
       id: 206,
       title: "Automated Dispute Resolution Agent using Multi-Modal LLMs",
       category: "FinTech",
       budget: 9500,
-      deadlineDays: 8,
+      deadlineDays: 2,
       matchScore: 98,
       clientName: "Global Trust Escrow",
       clientRating: 4.98,
@@ -149,15 +157,25 @@ export default function FreelancerFindProjectsPage() {
       clientCountry: "Singapore, SG",
       clientVerified: true,
       skills: ["LangChain", "Python", "PayPal SDK", "Vector DB"],
-      description: "Implement a verification pipeline that inspects submitted GitHub code against milestone criteria to trigger PayPal capture calls.",
+      description: "Urgent turnaround: Implement a verification pipeline that inspects submitted GitHub code against milestone criteria to trigger PayPal capture calls.",
       postedTime: "6h ago",
       proposalsCount: 1,
-      featured: true
+      featured: true,
+      isUrgentFast: true
     }
   ];
 
   const categories = ["All", "Web Development", "Data & AI", "FinTech", "Content & Research", "Design"];
-  const popularKeywords = ["React 19", "FastAPI", "PayPal REST API", "Python", "Next.js", "Figma"];
+
+  // Trending tags with real-time indicators
+  const trendingTags = [
+    { name: "React 19", count: "14 jobs", isHot: true },
+    { name: "FastAPI", count: "9 jobs", isHot: true },
+    { name: "PayPal REST API", count: "12 jobs", isHot: false },
+    { name: "Python", count: "18 jobs", isHot: true },
+    { name: "Next.js", count: "11 jobs", isHot: false },
+    { name: "Figma", count: "7 jobs", isHot: false }
+  ];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -184,6 +202,7 @@ export default function FreelancerFindProjectsPage() {
       .filter((p) => {
         const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
         const matchesTag = quickTag ? p.skills.includes(quickTag) : true;
+        const matchesFast = fastRequiringOnly ? p.isUrgentFast : true;
         const query = search.toLowerCase().trim();
         const matchesSearch = !query || 
           p.title.toLowerCase().includes(query) ||
@@ -192,14 +211,14 @@ export default function FreelancerFindProjectsPage() {
           p.skills.some((s) => s.toLowerCase().includes(query));
         const matchesMinBudget = p.budget >= minBudget;
 
-        return matchesCategory && matchesTag && matchesSearch && matchesMinBudget;
+        return matchesCategory && matchesTag && matchesFast && matchesSearch && matchesMinBudget;
       })
       .sort((a, b) => {
         if (sortBy === "match") return b.matchScore - a.matchScore;
         if (sortBy === "budget_high") return b.budget - a.budget;
         return a.id - b.id;
       });
-  }, [projects, selectedCategory, quickTag, search, minBudget, sortBy]);
+  }, [projects, selectedCategory, quickTag, fastRequiringOnly, search, minBudget, sortBy]);
 
   const toggleSave = (id: number) => {
     setSavedProjectIds((prev) => 
@@ -239,7 +258,7 @@ export default function FreelancerFindProjectsPage() {
           </div>
         )}
 
-        {/* Clean Header */}
+        {/* Header */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-8 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
@@ -265,7 +284,7 @@ export default function FreelancerFindProjectsPage() {
           </div>
         </header>
 
-        {/* Clean, Elegant Search & Filter Deck */}
+        {/* Clean Search, Trending Tags & Fast Requirements Deck */}
         <div className="mb-8 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
           
           {/* Main Search Bar */}
@@ -336,8 +355,8 @@ export default function FreelancerFindProjectsPage() {
             )}
           </div>
 
-          {/* Categories & Filter Selectors */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+          {/* Categories, Fast Requirements Switch, and Sorters */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-slate-100">
             
             {/* Category Buttons */}
             <div className="flex flex-wrap items-center gap-1.5">
@@ -360,8 +379,24 @@ export default function FreelancerFindProjectsPage() {
               })}
             </div>
 
-            {/* Sorter and Budget */}
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Fast Requirements Pill & Sorters */}
+            <div className="flex flex-wrap items-center gap-2">
+              
+              {/* Fast Turnaround Urgent Filter Toggle */}
+              <button
+                type="button"
+                onClick={() => setFastRequiringOnly(!fastRequiringOnly)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                  fastRequiringOnly
+                    ? "bg-amber-500 text-white border-amber-500 shadow-xs"
+                    : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+                }`}
+              >
+                <Zap className={`w-3.5 h-3.5 ${fastRequiringOnly ? "fill-white" : "fill-amber-500 text-amber-500"}`} />
+                <span>Fast Requirements (≤ 3-4 days)</span>
+                {fastRequiringOnly && <X className="w-3 h-3 ml-0.5" />}
+              </button>
+
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
                 <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
                 <span className="text-slate-400 font-medium">Sort:</span>
@@ -393,23 +428,29 @@ export default function FreelancerFindProjectsPage() {
 
           </div>
 
-          {/* Quick Skill Tags */}
-          <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 overflow-x-auto">
-            <span className="text-[11px] font-semibold text-slate-400 shrink-0">Tags:</span>
-            {popularKeywords.map((tag) => {
-              const isSelected = quickTag === tag;
+          {/* Trending Tags Row */}
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100 overflow-x-auto">
+            <div className="flex items-center gap-1 text-[11px] font-extrabold text-blue-600 uppercase tracking-wider shrink-0 bg-blue-50 px-2 py-0.5 rounded-md">
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>Trending Tags:</span>
+            </div>
+            
+            {trendingTags.map((tag) => {
+              const isSelected = quickTag === tag.name;
               return (
                 <button
-                  key={tag}
+                  key={tag.name}
                   type="button"
-                  onClick={() => setQuickTag(isSelected ? null : tag)}
-                  className={`text-[11px] font-semibold px-2 py-0.5 rounded-md transition-all cursor-pointer shrink-0 ${
+                  onClick={() => setQuickTag(isSelected ? null : tag.name)}
+                  className={`text-[11px] font-semibold px-2.5 py-1 rounded-md transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
                     isSelected
-                      ? "bg-blue-100 text-blue-700 font-bold"
-                      : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-slate-200"
+                      ? "bg-blue-600 text-white border-blue-600 font-bold shadow-xs"
+                      : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
                   }`}
                 >
-                  #{tag}
+                  {tag.isHot && <Flame className={`w-3 h-3 ${isSelected ? "text-amber-200 fill-amber-200" : "text-amber-500 fill-amber-500"}`} />}
+                  <span>#{tag.name}</span>
+                  <span className={`text-[10px] ${isSelected ? "text-blue-100" : "text-slate-400"}`}>({tag.count})</span>
                 </button>
               );
             })}
@@ -417,19 +458,19 @@ export default function FreelancerFindProjectsPage() {
 
         </div>
 
-        {/* Clean Project Feed */}
+        {/* Project Feed */}
         <div className="space-y-4 pb-16">
           {filteredProjects.length === 0 ? (
             <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
               <Compass className="w-10 h-10 text-slate-300 mx-auto mb-2" />
               <h3 className="text-base font-bold text-slate-800">No matching projects found</h3>
-              <p className="text-xs text-slate-400 mb-3">Try adjusting your search query or filters.</p>
+              <p className="text-xs text-slate-400 mb-3">Try adjusting your search query, trending tags, or fast requirement filter.</p>
               <button
                 type="button"
-                onClick={() => { setSearch(""); setSelectedCategory("All"); setMinBudget(0); setQuickTag(null); }}
+                onClick={() => { setSearch(""); setSelectedCategory("All"); setMinBudget(0); setQuickTag(null); setFastRequiringOnly(false); }}
                 className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Reset Filters
+                Reset All Filters
               </button>
             </div>
           ) : (
@@ -440,7 +481,11 @@ export default function FreelancerFindProjectsPage() {
               return (
                 <div
                   key={proj.id}
-                  className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all"
+                  className={`bg-white rounded-2xl p-6 border transition-all ${
+                    proj.isUrgentFast 
+                      ? "border-amber-200/80 shadow-xs hover:border-amber-300"
+                      : "border-slate-200 hover:border-blue-300 hover:shadow-xs"
+                  }`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                     
@@ -449,6 +494,12 @@ export default function FreelancerFindProjectsPage() {
                       
                       {/* Meta Tags */}
                       <div className="flex flex-wrap items-center gap-2 mb-2">
+                        {proj.isUrgentFast && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-100 text-amber-800 flex items-center gap-1 border border-amber-200">
+                            <Zap className="w-3 h-3 fill-amber-600 text-amber-600" /> Fast Turnaround ({proj.deadlineDays}d)
+                          </span>
+                        )}
+
                         {proj.featured && (
                           <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-700 uppercase tracking-wider">
                             Featured
