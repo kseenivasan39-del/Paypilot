@@ -9,6 +9,7 @@ import {
   ShieldCheck, AlertCircle, Check
 } from "lucide-react";
 import Link from "next/link";
+import AppSidebar from "@/components/AppSidebar";
 import NotificationBell from "@/components/NotificationBell";
 import UserProfileMenu from "@/components/UserProfileMenu";
 import { useRouter } from "next/navigation";
@@ -314,72 +315,7 @@ export default function AIAssistant() {
     <div className="flex min-h-screen bg-[#F8FAFC] font-sans h-screen overflow-hidden">
       
       {/* Sidebar */}
-      <aside className="w-[280px] bg-[#0B1120] text-slate-300 flex flex-col h-screen shrink-0">
-        <Link href="/" className="p-6 flex items-center gap-3 mb-4 hover:opacity-90 transition-opacity">
-          <div className="bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-white">
-              <path fillRule="evenodd" d="M11.47 2.47a.75.75 0 011.06 0l7.5 7.5a.75.75 0 11-1.06 1.06l-6.22-6.22V21a.75.75 0 01-1.5 0V4.81l-6.22 6.22a.75.75 0 11-1.06-1.06l7.5-7.5z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <span className="text-2xl font-bold text-white tracking-tight">PayPilot</span>
-        </Link>
-
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-          <Link href="/dashboard/client" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Home className="w-5 h-5" />
-            <span className="font-medium">Dashboard</span>
-          </Link>
-          <Link href="/projects/new" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Plus className="w-5 h-5" />
-            <span className="font-medium">Create Project</span>
-          </Link>
-          <Link href="/transactions" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Folder className="w-5 h-5" />
-            <span className="font-medium">My Projects</span>
-          </Link>
-          <Link href="/projects/matching" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Users className="w-5 h-5" />
-            <span className="font-medium">Find Freelancers</span>
-          </Link>
-          <Link href="/transactions" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <CreditCard className="w-5 h-5" />
-            <span className="font-medium">Transactions</span>
-          </Link>
-          <Link href="/messages" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <MessageSquare className="w-5 h-5" />
-            <span className="font-medium">Messages</span>
-          </Link>
-          <Link href="/ai" className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-900/20">
-            <Bot className="w-5 h-5" />
-            <span className="font-medium">AI Assistant</span>
-          </Link>
-          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors mt-4">
-            <Settings className="w-5 h-5" />
-            <span className="font-medium">Settings</span>
-          </Link>
-        </nav>
-
-        {/* Sidebar CTA */}
-        <div className="p-4 mt-auto">
-          <div className="bg-[#111827] rounded-2xl p-5 relative overflow-hidden flex flex-col gap-4 shadow-xl border border-slate-800">
-            <div className="absolute top-[-30px] right-[-30px] w-24 h-24 bg-blue-500/10 blur-xl rounded-full"></div>
-            
-            <div className="flex items-center gap-3 relative z-10">
-              <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <Bot className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-[12px] font-medium text-slate-300 leading-snug">
-                Let AI handle the work.<br/>
-                Let PayPal handle the payment.
-              </p>
-            </div>
-
-            <Link href="/projects/new" className="w-full py-2 border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 rounded-xl text-[13px] font-semibold transition-colors flex items-center justify-center gap-1 relative z-10">
-              New Project &rarr;
-            </Link>
-          </div>
-        </div>
-      </aside>
+      <AppSidebar activePage="ai" />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">

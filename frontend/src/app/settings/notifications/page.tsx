@@ -8,6 +8,7 @@ import {
   TriangleAlert, Moon, Clock, Save, Circle, CheckCircle2, Sparkles
 } from "lucide-react";
 import Link from "next/link";
+import AppSidebar from "@/components/AppSidebar";
 import NotificationBell from "@/components/NotificationBell";
 import UserProfileMenu from "@/components/UserProfileMenu";
 import { useState, useEffect } from "react";
@@ -70,53 +71,7 @@ export default function NotificationSettings() {
     <div className="flex min-h-screen bg-[#F8FAFC] font-sans h-screen overflow-hidden">
       
       {/* Sidebar */}
-      <aside className="w-[280px] bg-[#0B1120] text-slate-300 flex flex-col h-screen shrink-0 relative overflow-hidden">
-        <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-blue-900/20 to-transparent pointer-events-none"></div>
-
-        <Link href="/" className="p-6 flex items-center gap-3 mb-4 relative z-10 hover:opacity-90 transition-opacity">
-          <div className="bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-white">
-              <path fillRule="evenodd" d="M11.47 2.47a.75.75 0 011.06 0l7.5 7.5a.75.75 0 11-1.06 1.06l-6.22-6.22V21a.75.75 0 01-1.5 0V4.81l-6.22 6.22a.75.75 0 11-1.06-1.06l7.5-7.5z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <span className="text-2xl font-bold text-white tracking-tight">PayPilot</span>
-        </Link>
-
-        <nav className="flex-1 px-4 space-y-1 relative z-10 overflow-y-auto">
-          <Link href="/dashboard/client" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Home className="w-5 h-5" />
-            <span className="font-medium">Dashboard</span>
-          </Link>
-          <Link href="/projects/new" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Plus className="w-5 h-5" />
-            <span className="font-medium">Create Project</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Folder className="w-5 h-5" />
-            <span className="font-medium">My Projects</span>
-          </Link>
-          <Link href="/projects/matching" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Users className="w-5 h-5" />
-            <span className="font-medium">Find Freelancers</span>
-          </Link>
-          <Link href="/transactions" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <CreditCard className="w-5 h-5" />
-            <span className="font-medium">Transactions</span>
-          </Link>
-          <Link href="/messages" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <MessageSquare className="w-5 h-5" />
-            <span className="font-medium">Messages</span>
-          </Link>
-          <Link href="/ai" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Bot className="w-5 h-5" />
-            <span className="font-medium">AI Assistant</span>
-          </Link>
-          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-900/20 mt-4">
-            <SettingsIcon className="w-5 h-5" />
-            <span className="font-medium">Settings</span>
-          </Link>
-        </nav>
-      </aside>
+      <AppSidebar activePage="settings" />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
