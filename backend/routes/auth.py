@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 import json
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 from backend.database import get_db
 from backend.models import User, FreelancerProfile, NotificationPreferences, UserSettings, AuditLog
@@ -15,7 +19,8 @@ from backend.security import (
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def register_user(request: Request, data: RegisterRequest, db: Session = Depends(get_db)):
     """Register a new user account as client, freelancer, or admin."""
     # Check duplicate email
     existing = db.query(User).filter(User.email == data.email.lower()).first()
@@ -81,7 +86,8 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     }
 
 @router.post("/login", response_model=TokenResponse)
-def login_user(data: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("20/minute")
+def login_user(request: Request, data: LoginRequest, db: Session = Depends(get_db)):
     """Login with email and password to receive a JWT access token."""
     user = db.query(User).filter(User.email == data.email.lower()).first()
     if not user or not verify_password(data.password, user.hashed_password):
