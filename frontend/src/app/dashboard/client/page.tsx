@@ -5,7 +5,7 @@ import {
   Home, Folder, Users, CreditCard, MessageSquare, Bot, Settings, 
   Bell, Calendar, ChevronDown, Wallet, FileText, Clock, CheckCircle2, 
   Code2, PenTool, Sparkles, TrendingUp, ArrowUpRight, X, LogOut, Check,
-  ExternalLink, UserCheck, Shield, RefreshCw
+  ExternalLink, UserCheck, Shield, RefreshCw, AlertCircle
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -52,6 +52,7 @@ export default function ClientDashboard() {
   const [selectedFreelancer, setSelectedFreelancer] = useState<FreelancerModalData | null>(null);
 
   // Dynamic user data
+  const [roleClashWarning, setRoleClashWarning] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<any>({
     full_name: "Sarah Johnson",
     email: "client@paypilot.demo",
@@ -70,7 +71,13 @@ export default function ClientDashboard() {
     try {
       const stored = localStorage.getItem("paypilot_user");
       if (stored) {
-        setCurrentUser(JSON.parse(stored));
+        const user = JSON.parse(stored);
+        if (user?.role && user.role.toLowerCase() === "freelancer") {
+          setRoleClashWarning(true);
+        } else {
+          setCurrentUser(user);
+          setRoleClashWarning(false);
+        }
       }
     } catch {
       // Keep default
@@ -171,6 +178,26 @@ export default function ClientDashboard() {
 
       {/* Main Content Area */}
       <main className="flex-1 p-8 max-w-[1600px]">
+        {/* Role Clash Warning Banner if Freelancer is logged in */}
+        {roleClashWarning && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+              <div>
+                <p className="text-xs font-bold">You are logged in as a Freelancer (Rahul)</p>
+                <p className="text-[11px] text-amber-700">You are currently looking at the Client dashboard view.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/dashboard/freelancer" className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors">
+                Go to Freelancer Dashboard &rarr;
+              </Link>
+              <button type="button" onClick={handleSwitchToDemoClient} className="px-3 py-1.5 bg-white border border-amber-300 hover:bg-amber-100/50 text-amber-900 rounded-xl text-xs font-bold transition-colors cursor-pointer">
+                Switch to Client (Sarah)
+              </button>
+            </div>
+          </div>
+        )}
         
         {/* Header */}
         <header className="flex justify-between items-end mb-8 relative">
