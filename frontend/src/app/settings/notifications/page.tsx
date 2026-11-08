@@ -28,7 +28,7 @@ export default function NotificationSettings() {
     async function fetchPrefs() {
       try {
         if (typeof window !== "undefined" && !localStorage.getItem("paypilot_token")) {
-          await authApi.loginAsDemoClient();
+          const role = typeof window !== "undefined" ? (JSON.parse(localStorage.getItem("paypilot_user") || "{}").role || "freelancer") : "freelancer"; if (role === "freelancer") { await authApi.loginAsDemoFreelancer(); } else { await authApi.loginAsDemoClient(); }
         }
         const prefs = await settingsApi.getNotificationPreferences();
         if (isMounted && prefs) {

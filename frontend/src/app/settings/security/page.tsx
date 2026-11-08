@@ -53,7 +53,7 @@ export default function SecuritySettings() {
     async function fetchSecurity() {
       try {
         if (typeof window !== "undefined" && !localStorage.getItem("paypilot_token")) {
-          await authApi.loginAsDemoClient();
+          const role = typeof window !== "undefined" ? (JSON.parse(localStorage.getItem("paypilot_user") || "{}").role || "freelancer") : "freelancer"; if (role === "freelancer") { await authApi.loginAsDemoFreelancer(); } else { await authApi.loginAsDemoClient(); }
         }
         const data = await settingsApi.getSecurity();
         if (isMounted) setSecurityData(data);

@@ -97,8 +97,8 @@ const POPULAR_LOCATIONS: LocationOption[] = [
 
 export default function Settings() {
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [fullName, setFullName] = useState("Sarah Johnson");
-  const [email, setEmail] = useState("sarah@example.com");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("98765 43210");
   const [location, setLocation] = useState("Chennai, India");
   const [bio, setBio] = useState("I'm a student and tech enthusiast. I use PayPilot to find skilled freelancers for my academic and personal projects.");
@@ -136,7 +136,7 @@ export default function Settings() {
     async function fetchUser() {
       try {
         if (typeof window !== "undefined" && !localStorage.getItem("paypilot_token")) {
-          await authApi.loginAsDemoClient();
+          const role = typeof window !== "undefined" ? (JSON.parse(localStorage.getItem("paypilot_user") || "{}").role || "freelancer") : "freelancer"; if (role === "freelancer") { await authApi.loginAsDemoFreelancer(); } else { await authApi.loginAsDemoClient(); }
         }
         const user = await authApi.getMe();
         if (isMounted && user) {
@@ -257,7 +257,7 @@ export default function Settings() {
 
                 <div className="flex items-center gap-6 mb-8">
                   <div className="relative">
-                    <img src="https://i.pravatar.cc/150?u=sarah" alt="Profile" className="w-24 h-24 rounded-full object-cover shadow-sm border-2 border-white" />
+                    <img src={currentUser?.role === "freelancer" ? "https://i.pravatar.cc/150?u=rahul" : "https://i.pravatar.cc/150?u=sarah"} alt="Profile" className="w-24 h-24 rounded-full object-cover shadow-sm border-2 border-white" />
                     <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center border-2 border-white hover:bg-blue-700 transition-colors">
                       <Camera className="w-4 h-4" />
                     </button>
