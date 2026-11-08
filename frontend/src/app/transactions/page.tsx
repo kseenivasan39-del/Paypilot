@@ -2,10 +2,12 @@
 
 import { 
   Home, Folder, Users, CreditCard, MessageSquare, Bot, Settings, 
-  ChevronLeft, CheckCircle2, ShieldCheck, Clock, AlertCircle, Loader2
+  ChevronLeft, CheckCircle2, ShieldCheck, Clock, AlertCircle, Loader2,
+  FileText, Download, Printer
 } from "lucide-react";
 import Link from "next/link";
 import AppSidebar from "@/components/AppSidebar";
+import TaxInvoiceModal, { InvoiceData } from "@/components/TaxInvoiceModal";
 import { useState, useEffect } from "react";
 import { transactionsApi, authApi } from "@/lib/api";
 
@@ -30,6 +32,10 @@ export default function TransactionDetails() {
   const [loading, setLoading] = useState(true);
   const [formattedDate, setFormattedDate] = useState("Oct 6, 2026, 10:30 AM");
 
+  // Tax Invoice modal
+  const [showTaxModal, setShowTaxModal] = useState(false);
+  const [activeInvoice, setActiveInvoice] = useState<InvoiceData | null>(null);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -37,7 +43,12 @@ export default function TransactionDetails() {
       setLoading(true);
       try {
         if (typeof window !== "undefined" && !localStorage.getItem("paypilot_token")) {
-          const role = typeof window !== "undefined" ? (JSON.parse(localStorage.getItem("paypilot_user") || "{}").role || "freelancer") : "freelancer"; if (role === "freelancer") { await authApi.loginAsDemoFreelancer(); } else { await authApi.loginAsDemoClient(); }
+          const role = typeof window !== "undefined" ? (JSON.parse(localStorage.getItem("paypilot_user") || "{}").role || "client") : "client"; 
+          if (role === "freelancer") { 
+            await authApi.loginAsDemoFreelancer(); 
+          } else { 
+            await authApi.loginAsDemoClient(); 
+          }
         }
 
         const data = await transactionsApi.list();
@@ -101,98 +112,144 @@ export default function TransactionDetails() {
     }
 
     fetchTransactions();
-    return () => { isMounted = false; };
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const currentTx = selectedTx || transactions[0] || {
+  const currentTx = selectedTx || {
     id: 1001,
     amount: 3500,
     currency: "INR",
     status: "COMPLETED",
     paypal_order_id: "28S123456R7880123",
+    paypal_capture_id: "CAP-998877",
+    is_simulated: true,
     created_at: "2026-10-06T10:30:00.000Z",
     project_title: "React Dashboard for College Project",
     client_name: "Sarah Johnson",
     freelancer_name: "Rahul Kumar"
   };
 
-  useEffect(() => {
-    if (currentTx?.created_at) {
-      try {
-        const d = new Date(currentTx.created_at);
-        if (!isNaN(d.getTime())) {
-          setFormattedDate(d.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit"
-          }));
-        }
-      } catch (e) {
-        // keep default
-      }
-    }
-  }, [currentTx]);
+  const handleOpenTaxInvoice = () => {
+    const inv: InvoiceData = {
+      invoiceNumber: `INV-2026-${currentTx.id}`,
+      orderId: currentTx.paypal_order_id || "28S123456R7880123",
+      captureId: currentTx.paypal_capture_id || "CAP-998877",
+      date: formattedDate.split(",")[0] || "Oct 6, 2026",
+      clientName: currentTx.client_name || "Sarah Johnson",
+      clientCompany: "TechCorp Labs",
+      clientEmail: "client@paypilot.demo",
+      freelancerName: currentTx.freelancer_name || "Rahul Kumar",
+      freelancerTitle: "Full Stack Engineer & Consultant",
+      freelancerEmail: "freelancer@paypilot.demo",
+      projectTitle: currentTx.project_title || "React Dashboard for College Project",
+      milestoneTitle: "Milestone Deliverable Sign-off",
+      amount: currentTx.amount,
+      currency: currentTx.currency,
+      platformFee: 0,
+      taxAmount: Math.round(currentTx.amount * 0.18),
+      taxRatePercent: 18,
+      netTotal: currentTx.amount + Math.round(currentTx.amount * 0.18),
+      paymentMethod: "PayPal Smart Escrow Capture",
+      status: "PAID",
+      aiVerificationScore: 96
+    };
+    setActiveInvoice(inv);
+    setShowTaxModal(true);
+  };
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] font-sans">
-      
+    <div className="flex min-h-screen bg-[#F8FAFC]">
       {/* Sidebar */}
       <AppSidebar activePage="earnings" />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-10 max-w-[1200px] mt-6">
-        
-        {/* Transaction History Switcher */}
-        {transactions.length > 1 && (
-          <div className="mb-6 flex gap-3 overflow-x-auto pb-2">
-            {transactions.map((tx) => (
-              <button
-                key={tx.id}
-                onClick={() => setSelectedTx(tx)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                  selectedTx?.id === tx.id 
-                    ? "bg-blue-600 text-white border-blue-600 shadow-md" 
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                PP-{tx.id} • {tx.currency} {tx.amount.toLocaleString()}
-              </button>
-            ))}
+      <main className="flex-1 p-8 max-w-[1600px]">
+        {/* Header Breadcrumb */}
+        <div className="flex items-center justify-between gap-2 text-sm text-slate-500 mb-8">
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard/client" className="hover:text-blue-600 transition-colors">Client Portal</Link>
+            <span>/</span>
+            <span className="text-slate-900 font-medium">Transaction Records</span>
           </div>
-        )}
 
-        <div className="relative">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleOpenTaxInvoice}
+              className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <FileText className="w-4 h-4 text-blue-600" />
+              <span>Download Official Tax Invoice (PDF)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Transactions List & Main Card */}
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
           
-          {/* Floating Top Badge */}
-          <div className="absolute -top-5 left-6 bg-[#4A5568] text-white px-6 py-2 rounded-xl font-bold text-lg shadow-md z-10 border border-slate-500/50">
-            Transaction Details
+          {/* History Sidebar */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Recent Escrows</h3>
+            {loading ? (
+              <div className="p-4 bg-white rounded-2xl border border-slate-200 flex items-center gap-2 text-xs text-slate-500">
+                <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> Loading records...
+              </div>
+            ) : (
+              transactions.map((tx) => (
+                <div 
+                  key={tx.id} 
+                  onClick={() => setSelectedTx(tx)}
+                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                    currentTx.id === tx.id 
+                      ? "bg-blue-50/50 border-blue-500 shadow-sm" 
+                      : "bg-white border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="font-bold text-slate-900 text-sm">₹{tx.amount.toLocaleString()}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      {tx.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 font-medium truncate mb-2">{tx.project_title || "Project Milestone"}</p>
+                  <div className="flex justify-between text-[11px] text-slate-400 font-mono">
+                    <span>PP-{tx.id}</span>
+                    <span>{tx.paypal_order_id ? tx.paypal_order_id.slice(-8) : "28S12345"}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
-          {/* Main Card */}
-          <div className="bg-white rounded-[24px] p-8 pt-14 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100">
+          {/* Transaction Card */}
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative">
             
-            <div className="flex justify-between items-center mb-8">
-              <div className="flex items-center gap-4">
-                <h1 className="text-[1.8rem] font-bold text-slate-900 tracking-tight">Transaction Details</h1>
-                <div className={`flex items-center gap-1.5 px-3 py-1 text-sm font-bold rounded-full ${
-                  currentTx.status === "COMPLETED" 
-                    ? "bg-[#DCFCE7] text-[#166534]" 
-                    : "bg-[#FEF3C7] text-[#D97706]"
-                }`}>
-                  <CheckCircle2 className="w-4 h-4" />
-                  {currentTx.status}
-                </div>
+            {/* Top Bar inside Card */}
+            <div className="flex justify-between items-center pb-6 mb-6 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-black text-slate-900">Transaction Details</h1>
                 {currentTx.is_simulated && (
-                  <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-full border border-slate-200">
-                    Sandbox / Test
+                  <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold text-xs">
+                    Simulated Sandbox
                   </span>
                 )}
               </div>
-              <Link href="/dashboard/client" className="flex items-center gap-1 text-blue-600 font-bold hover:text-blue-700 transition-colors">
-                <ChevronLeft className="w-5 h-5" /> Back to Dashboard
-              </Link>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleOpenTaxInvoice}
+                  className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>1-Click Tax Invoice</span>
+                </button>
+                <Link href="/dashboard/client" className="flex items-center gap-1 text-slate-500 font-bold text-xs hover:text-slate-700 transition-colors">
+                  <ChevronLeft className="w-4 h-4" /> Back to Dashboard
+                </Link>
+              </div>
             </div>
 
             {/* Top ID Boxes */}
@@ -211,13 +268,13 @@ export default function TransactionDetails() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[1fr_1fr] gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Left Details Info */}
-              <div className="border border-slate-100 rounded-2xl p-6 bg-slate-50/30 space-y-5">
+              <div className="border border-slate-100 rounded-2xl p-6 bg-slate-50/30 space-y-4 text-sm">
                 <div className="grid grid-cols-[140px_1fr] items-start">
                   <span className="text-slate-500 font-medium">Project</span>
-                  <span className="text-slate-900 font-medium">{currentTx.project_title || "React Dashboard for College Project"}</span>
+                  <span className="text-slate-900 font-bold">{currentTx.project_title || "React Dashboard for College Project"}</span>
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-start">
                   <span className="text-slate-500 font-medium">Client</span>
@@ -229,11 +286,7 @@ export default function TransactionDetails() {
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-start">
                   <span className="text-slate-500 font-medium">Amount</span>
-                  <span className="text-slate-900 font-medium">₹{currentTx.amount.toLocaleString()} {currentTx.currency}</span>
-                </div>
-                <div className="grid grid-cols-[140px_1fr] items-start">
-                  <span className="text-slate-500 font-medium">Currency</span>
-                  <span className="text-slate-900 font-medium">{currentTx.currency}</span>
+                  <span className="text-slate-900 font-black text-base text-blue-600">₹{currentTx.amount.toLocaleString()} {currentTx.currency}</span>
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-start">
                   <span className="text-slate-500 font-medium">Date</span>
@@ -241,7 +294,7 @@ export default function TransactionDetails() {
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center">
                   <span className="text-slate-500 font-medium">Status</span>
-                  <div className="w-fit px-3 py-1 bg-[#DCFCE7] text-[#166534] text-sm font-bold rounded-full">
+                  <div className="w-fit px-3 py-1 bg-[#DCFCE7] text-[#166534] text-xs font-bold rounded-full">
                     {currentTx.status}
                   </div>
                 </div>
@@ -252,8 +305,8 @@ export default function TransactionDetails() {
                       <ShieldCheck className="w-5 h-5 text-emerald-600" />
                       8 / 100
                     </div>
-                    <div className="px-3 py-1 bg-[#D1FAE5] text-[#047857] text-sm font-bold rounded-full">
-                      LOW
+                    <div className="px-3 py-0.5 bg-[#D1FAE5] text-[#047857] text-xs font-bold rounded-full">
+                      LOW RISK
                     </div>
                   </div>
                 </div>
@@ -261,9 +314,9 @@ export default function TransactionDetails() {
 
               {/* Right Timeline */}
               <div className="border border-slate-100 rounded-2xl p-6 bg-slate-50/30">
-                <h3 className="text-lg font-bold text-slate-900 mb-6">Payment Timeline</h3>
+                <h3 className="text-base font-bold text-slate-900 mb-6">Escrow Settlement Timeline</h3>
                 
-                <div className="relative space-y-6 before:absolute before:inset-0 before:ml-[11px] before:w-px before:h-[85%] before:bg-slate-200 before:z-0">
+                <div className="relative space-y-6 before:absolute before:inset-0 before:ml-[11px] before:w-px before:h-[85%] before:bg-slate-200 before:z-0 text-xs">
                   
                   <div className="flex items-start justify-between relative z-10">
                     <div className="flex items-center gap-4">
@@ -272,7 +325,7 @@ export default function TransactionDetails() {
                       </div>
                       <span className="text-slate-900 font-medium">Payment Initiated</span>
                     </div>
-                    <span className="text-slate-500 text-sm">Verified</span>
+                    <span className="text-slate-500">Verified</span>
                   </div>
 
                   <div className="flex items-start justify-between relative z-10">
@@ -282,7 +335,7 @@ export default function TransactionDetails() {
                       </div>
                       <span className="text-slate-900 font-medium">PayPal Order Created</span>
                     </div>
-                    <span className="text-slate-500 text-sm">Sandbox</span>
+                    <span className="text-slate-500">Sandbox</span>
                   </div>
 
                   <div className="flex items-start justify-between relative z-10">
@@ -292,7 +345,7 @@ export default function TransactionDetails() {
                       </div>
                       <span className="text-slate-900 font-medium">Server-Side Payment Captured</span>
                     </div>
-                    <span className="text-slate-500 text-sm">Verified</span>
+                    <span className="text-slate-500">Verified</span>
                   </div>
 
                   <div className="flex items-start justify-between relative z-10">
@@ -302,7 +355,7 @@ export default function TransactionDetails() {
                       </div>
                       <span className="text-slate-900 font-medium">Ledger Recorded & Idempotent</span>
                     </div>
-                    <span className="text-slate-500 text-sm">{currentTx.status}</span>
+                    <span className="text-slate-500">{currentTx.status}</span>
                   </div>
 
                 </div>
@@ -311,6 +364,13 @@ export default function TransactionDetails() {
             </div>
           </div>
         </div>
+
+        {/* Global PDF Tax Invoice Modal */}
+        <TaxInvoiceModal
+          isOpen={showTaxModal}
+          invoice={activeInvoice}
+          onClose={() => setShowTaxModal(false)}
+        />
       </main>
     </div>
   );

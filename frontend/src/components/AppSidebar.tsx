@@ -172,14 +172,14 @@ export default function AppSidebar({ activePage }: AppSidebarProps) {
             </Link>
 
             <Link 
-              href="/projects/matching" 
+              href="/client/talent" 
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activePage === "find-projects"
                   ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
                   : "hover:bg-slate-800/50 hover:text-white font-medium"
               }`}
             >
-              <Users className="w-5 h-5" />
+              <Users className="w-5 h-5 text-cyan-400" />
               <span>Find Freelancers</span>
             </Link>
 

@@ -28,7 +28,7 @@ export default function ForClientsPage() {
             <Link href="/projects/new" className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-8 py-4 rounded-xl font-bold text-[15px] flex items-center gap-2 shadow-[0_0_20px_rgba(56,189,248,0.3)] transition-all">
               Start a Project <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link href="/dashboard/client" className="border border-slate-700 hover:bg-slate-800 text-white px-8 py-4 rounded-xl font-bold text-[15px] transition-colors">
+            <Link href="/client/talent" className="border border-slate-700 hover:bg-slate-800 text-white px-8 py-4 rounded-xl font-bold text-[15px] transition-colors">
               Explore Freelancers
             </Link>
           </div>
