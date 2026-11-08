@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { 
   Home, Briefcase, FileText, DollarSign, CreditCard, MessageSquare, 
   User, Settings, Bell, Calendar, Wallet, Hourglass, CheckCircle2,
-  Users, Flame, Clock, X, Check, LogOut, Send, AlertCircle
+  Users, Flame, Clock, X, Check, LogOut, Send, AlertCircle, RefreshCw, ArrowRight
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -42,6 +42,7 @@ export default function FreelancerDashboard() {
     email: "rahul@paypilot.demo",
     role: "freelancer"
   });
+  const [roleClashWarning, setRoleClashWarning] = useState<boolean>(false);
 
   // Recommended projects list
   const [projects] = useState<RecommendedProject[]>([
@@ -81,12 +82,33 @@ export default function FreelancerDashboard() {
     try {
       const stored = localStorage.getItem("paypilot_user");
       if (stored) {
-        setCurrentUser(JSON.parse(stored));
+        const user = JSON.parse(stored);
+        if (user?.role && user.role.toLowerCase() === "client") {
+          // A client is currently logged in! Flag role clash warning
+          setRoleClashWarning(true);
+        } else {
+          setCurrentUser(user);
+          setRoleClashWarning(false);
+        }
       }
     } catch {
       // Default
     }
   }, []);
+
+  const handleSwitchToDemoFreelancer = async () => {
+    try {
+      const res = await authApi.loginAsDemoFreelancer();
+      if (res?.user) {
+        setCurrentUser(res.user);
+        setRoleClashWarning(false);
+        setSuccessToast("Switched to Freelancer account (Rahul Kumar)");
+        setTimeout(() => setSuccessToast(null), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleApplyClick = (project: RecommendedProject) => {
     setSelectedProject(project);
@@ -115,7 +137,7 @@ export default function FreelancerDashboard() {
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] font-sans">
       
-      {/* Sidebar */}
+      {/* Sidebar - Freelancer Custom Navigation */}
       <aside className="w-[280px] bg-[#0B1120] text-slate-300 flex flex-col h-screen sticky top-0 shrink-0">
         <Link href="/" className="p-6 flex items-center gap-3 mb-4 hover:opacity-90 transition-opacity">
           <div className="bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl p-2">
@@ -123,7 +145,10 @@ export default function FreelancerDashboard() {
               <path fillRule="evenodd" d="M11.47 2.47a.75.75 0 011.06 0l7.5 7.5a.75.75 0 11-1.06 1.06l-6.22-6.22V21a.75.75 0 01-1.5 0V4.81l-6.22 6.22a.75.75 0 11-1.06-1.06l7.5-7.5z" clipRule="evenodd" />
             </svg>
           </div>
-          <span className="text-2xl font-bold text-white tracking-tight">PayPilot</span>
+          <div>
+            <span className="text-2xl font-bold text-white tracking-tight">PayPilot</span>
+            <span className="block text-[10px] text-cyan-400 font-semibold tracking-wider uppercase">Freelancer Portal</span>
+          </div>
         </Link>
 
         <nav className="flex-1 px-4 space-y-1">
@@ -131,45 +156,82 @@ export default function FreelancerDashboard() {
             <Home className="w-5 h-5" />
             <span className="font-medium">Dashboard</span>
           </Link>
-          <Link href="/projects/new" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors text-blue-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-            <span className="font-medium">Create Project</span>
-          </Link>
           <Link href="/projects/matching" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Briefcase className="w-5 h-5" />
+            <Briefcase className="w-5 h-5 text-cyan-400" />
             <span className="font-medium">Find Projects</span>
           </Link>
-          <Link href="/transactions" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
+          <Link href="/messages" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
             <FileText className="w-5 h-5" />
-            <span className="font-medium">My Projects</span>
+            <span className="font-medium">My Proposals</span>
           </Link>
           <Link href="/transactions" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <DollarSign className="w-5 h-5" />
-            <span className="font-medium">Earnings</span>
-          </Link>
-          <Link href="/transactions" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <CreditCard className="w-5 h-5" />
-            <span className="font-medium">Transactions</span>
+            <DollarSign className="w-5 h-5 text-emerald-400" />
+            <span className="font-medium">Earnings & Payouts</span>
           </Link>
           <Link href="/messages" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors relative">
             <MessageSquare className="w-5 h-5" />
             <span className="font-medium">Messages</span>
             <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-500 rounded-full"></span>
           </Link>
+          <Link href="/ai" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
+            <Flame className="w-5 h-5 text-amber-400" />
+            <span className="font-medium">AI Milestone Assistant</span>
+          </Link>
           <Link href="/settings" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors mt-4">
             <User className="w-5 h-5" />
-            <span className="font-medium">Profile</span>
+            <span className="font-medium">Profile & Skills</span>
           </Link>
           <Link href="/settings/account" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Settings</span>
           </Link>
         </nav>
+
+        {/* Quick Role Switcher in Sidebar footer */}
+        <div className="p-4 border-t border-slate-800/80 bg-slate-900/40 m-3 rounded-2xl">
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-2">Switch View</p>
+          <Link 
+            href="/dashboard/client" 
+            className="flex items-center justify-between text-xs text-blue-400 hover:text-blue-300 font-semibold py-1 transition-colors"
+          >
+            <span>Go to Client View</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="flex-1 p-8 max-w-[1400px]">
         
+        {/* Role Clash Warning Banner if Client is logged in */}
+        {roleClashWarning && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+              <div>
+                <p className="text-xs font-bold">You are currently logged in with a Client account</p>
+                <p className="text-[11px] text-amber-700">You are viewing the Freelancer dashboard in preview mode.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSwitchToDemoFreelancer}
+                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Sign in as Freelancer (Rahul)
+              </button>
+              <Link
+                href="/dashboard/client"
+                className="px-3 py-1.5 bg-white border border-amber-300 hover:bg-amber-100/50 text-amber-900 rounded-xl text-xs font-bold transition-colors"
+              >
+                Go to Client Dashboard
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Toast Notification */}
         {successToast && (
           <div className="fixed top-6 right-8 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 z-50 animate-bounce">
@@ -184,7 +246,7 @@ export default function FreelancerDashboard() {
             <h1 className="text-3xl font-extrabold text-slate-900 flex items-center gap-2 tracking-tight">
               Welcome back, {currentUser.full_name?.split(" ")[0] || "Rahul"}! <span className="text-3xl">👋</span>
             </h1>
-            <p className="text-slate-500 font-medium mt-1">Here's your freelance activity and matches.</p>
+            <p className="text-slate-500 font-medium mt-1">Here's your freelance activity, AI project matches, and milestones.</p>
           </div>
           
           <div className="flex items-center gap-4 relative">
@@ -290,7 +352,7 @@ export default function FreelancerDashboard() {
                   setShowNotifications(false);
                   setShowCalendar(false);
                 }}
-                className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold border-2 border-white shadow-sm overflow-hidden flex items-center justify-center relative hover:opacity-90 transition-opacity"
+                className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold border-2 border-white shadow-sm overflow-hidden flex items-center justify-center relative hover:opacity-90 transition-opacity cursor-pointer"
               >
                 {currentUser.full_name?.split(" ").map((n: string) => n[0]).join("") || "RK"}
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
@@ -301,11 +363,27 @@ export default function FreelancerDashboard() {
                   <div className="p-3 border-b border-slate-100">
                     <p className="font-bold text-slate-900 text-sm">{currentUser.full_name}</p>
                     <p className="text-xs text-slate-500 truncate">{currentUser.email}</p>
-                    <span className="inline-block px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded mt-1.5 uppercase">
-                      {currentUser.role || "Freelancer"}
-                    </span>
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      <span className="inline-block px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">
+                        {currentUser.role || "Freelancer"}
+                      </span>
+                      <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded">
+                        Level 2 Seller
+                      </span>
+                    </div>
                   </div>
                   <div className="py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        handleSwitchToDemoFreelancer();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer text-left"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      <span>Switch to Freelancer</span>
+                    </button>
                     <Link 
                       href="/settings"
                       onClick={() => setShowProfileMenu(false)}
@@ -324,7 +402,7 @@ export default function FreelancerDashboard() {
                     </Link>
                     <button 
                       onClick={handleSignOut}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer text-left"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
@@ -339,213 +417,240 @@ export default function FreelancerDashboard() {
 
         {/* Stats Row */}
         <div className="grid grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0">
-              <Wallet className="w-7 h-7 text-blue-500" />
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Earnings</span>
+              <span className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                <Wallet className="w-5 h-5" />
+              </span>
             </div>
-            <div>
-              <h3 className="text-[1.75rem] font-bold text-blue-600 leading-none">₹18,750</h3>
-              <p className="text-sm font-medium text-slate-500 mt-1">Total Earnings</p>
-            </div>
+            <div className="text-3xl font-extrabold text-slate-900 tracking-tight">₹28,500</div>
+            <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
+              <span>↑ 12%</span>
+              <span className="text-slate-400 font-normal">from last month</span>
+            </p>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-[#eff6ff] flex items-center justify-center shrink-0">
-              <FileText className="w-7 h-7 text-blue-600" />
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">Active Projects</span>
+              <span className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                <Hourglass className="w-5 h-5" />
+              </span>
             </div>
-            <div>
-              <h3 className="text-[1.75rem] font-bold text-blue-600 leading-none">4</h3>
-              <p className="text-sm font-medium text-slate-500 mt-1">Active Projects</p>
-            </div>
+            <div className="text-3xl font-extrabold text-slate-900 tracking-tight">3</div>
+            <p className="text-xs font-semibold text-blue-600 mt-2">2 milestones pending review</p>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center shrink-0">
-              <Hourglass className="w-7 h-7 text-purple-500" />
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">Completed</span>
+              <span className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <CheckCircle2 className="w-5 h-5" />
+              </span>
             </div>
-            <div>
-              <h3 className="text-[1.75rem] font-bold text-purple-600 leading-none">₹5,200</h3>
-              <p className="text-sm font-medium text-slate-500 mt-1">Pending Release</p>
-            </div>
+            <div className="text-3xl font-extrabold text-slate-900 tracking-tight">12</div>
+            <p className="text-xs font-normal text-slate-400 mt-2">100% on-time delivery</p>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-7 h-7 text-emerald-500" />
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">Client Rating</span>
+              <span className="p-2.5 bg-amber-50 text-amber-500 rounded-xl">★</span>
             </div>
-            <div>
-              <h3 className="text-[1.75rem] font-bold text-emerald-600 leading-none">12</h3>
-              <p className="text-sm font-medium text-slate-500 mt-1">Completed</p>
-            </div>
+            <div className="text-3xl font-extrabold text-slate-900 tracking-tight">4.9 / 5.0</div>
+            <p className="text-xs font-normal text-slate-400 mt-2">Based on 14 reviews</p>
           </div>
         </div>
 
-        {/* Recommended Projects */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-[1.35rem] font-bold text-slate-900 tracking-tight">Recommended Projects</h2>
-            <Link href="/projects/matching" className="text-blue-600 font-semibold text-sm hover:underline flex items-center gap-1">
-              View All &rarr;
-            </Link>
-          </div>
+        {/* Main Grid: Recommended Projects & Earnings Overview */}
+        <div className="grid grid-cols-3 gap-8">
+          
+          {/* Recommended Projects (2 Cols) */}
+          <div className="col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Recommended Projects for You</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Matched using PayPilot AI skill vectorizer</p>
+              </div>
+              <Link href="/projects/matching" className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                View All Matches <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
 
-          <div className="space-y-0">
-            {projects.map((proj) => {
-              const isApplied = appliedProjectIds.includes(proj.id);
-              return (
-                <div key={proj.id} className="flex items-center justify-between py-5 border-b border-slate-100 last:border-0">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 text-slate-600 font-bold">
-                      <Briefcase className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-[17px]">{proj.title}</h3>
-                      <div className="flex items-center gap-2 mt-1 text-sm font-medium text-slate-500">
-                        <span className="text-slate-900 font-bold">₹{proj.budget.toLocaleString()}</span>
-                        <span className="text-slate-300">•</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {proj.deliveryDays} days</span>
-                        <span className="text-slate-300">•</span>
-                        <span className="text-slate-500">{proj.category}</span>
+            <div className="space-y-4">
+              {projects.map((project) => {
+                const isApplied = appliedProjectIds.includes(project.id);
+                return (
+                  <div 
+                    key={project.id} 
+                    className="p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all bg-slate-50/40 flex items-center justify-between gap-4"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+                          {project.category}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 flex items-center gap-1">
+                          <Flame className="w-3 h-3" /> {project.matchScore}% Match
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-900 mb-1">{project.title}</h4>
+                      <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" /> {project.deliveryDays} days delivery
+                        </span>
+                        <span>•</span>
+                        <span className="text-slate-900 font-bold">₹{project.budget.toLocaleString()} Fixed Budget</span>
                       </div>
                     </div>
+
+                    <div className="shrink-0">
+                      {isApplied ? (
+                        <button
+                          disabled
+                          className="px-4 py-2 bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl flex items-center gap-1.5"
+                        >
+                          <Check className="w-4 h-4" /> Applied
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleApplyClick(project)}
+                          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          Apply Now <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100/60 text-emerald-700 text-xs font-bold">
-                      <Flame className="w-3.5 h-3.5 fill-emerald-600" /> {proj.matchScore}% match
-                    </span>
-                    {isApplied ? (
-                      <span className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm">
-                        <Check className="w-4 h-4 text-emerald-600" /> Applied
-                      </span>
-                    ) : (
-                      <button 
-                        onClick={() => handleApplyClick(proj)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-6 py-2.5 rounded-xl transition-colors shadow-sm"
-                      >
-                        Apply
-                      </button>
-                    )}
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Earnings & Escrow Overview (1 Col) */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Milestone Escrow Status</h3>
+              
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-700 mb-1">
+                    <span>In PayPal Escrow</span>
+                    <span className="text-emerald-600">₹8,500</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Secured funds awaiting milestone deliverable approval</p>
+                  <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                    <div className="bg-emerald-500 h-full rounded-full w-[70%]"></div>
                   </div>
                 </div>
-              );
-            })}
+
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-700 mb-1">
+                    <span>Available Payout</span>
+                    <span className="text-blue-600">₹20,000</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Auto-transferred to your connected PayPal Sandbox account</p>
+                </div>
+              </div>
+
+              <Link 
+                href="/transactions" 
+                className="mt-5 w-full block text-center py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+              >
+                View Detailed Invoices & Payouts
+              </Link>
+            </div>
+
+            {/* AI Assistant Promo Card */}
+            <div className="bg-gradient-to-br from-indigo-900 to-blue-900 text-white rounded-3xl p-6 relative overflow-hidden shadow-lg">
+              <div className="relative z-10">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-blue-200 uppercase tracking-wider mb-2 inline-block">
+                  AI Auto-Verify
+                </span>
+                <h4 className="text-base font-bold mb-1">Boost Your Match Score</h4>
+                <p className="text-xs text-blue-200 leading-relaxed mb-4">
+                  PayPilot AI inspects code and reports against client criteria for automated milestone release.
+                </p>
+                <Link 
+                  href="/projects/matching" 
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-blue-900 font-bold text-xs rounded-xl hover:bg-blue-50 transition-colors"
+                >
+                  Explore AI Matching <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
           </div>
+
         </div>
 
-        {/* Recent Payments */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-[1.35rem] font-bold text-slate-900 tracking-tight">Recent Payments</h2>
-            <Link href="/transactions" className="text-blue-600 font-semibold text-sm hover:underline">
-              View All Transactions &rarr;
-            </Link>
+        {/* Modal: Submit Proposal */}
+        {selectedProject && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
+                <div>
+                  <span className="text-[11px] font-bold text-blue-600 uppercase">Submit Proposal</span>
+                  <h3 className="text-lg font-bold text-slate-900">{selectedProject.title}</h3>
+                </div>
+                <button 
+                  onClick={() => setSelectedProject(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Your Bid Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 outline-none focus:border-blue-500"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Client budget: ₹{selectedProject.budget.toLocaleString()}</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Cover Note / Why You're a Fit</label>
+                  <textarea
+                    rows={4}
+                    value={coverLetter}
+                    onChange={(e) => setCoverLetter(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 outline-none focus:border-blue-500 resize-none"
+                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100 flex items-start gap-2 text-xs text-blue-900">
+                  <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span>Payments are escrowed in PayPal before work begins to guarantee your payout upon deliverable completion.</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setSelectedProject(null)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={handleConfirmApplication}
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {submitting ? "Submitting..." : "Submit Proposal"}
+                </button>
+              </div>
+            </div>
           </div>
-          
-          <table className="w-full text-sm text-left">
-            <tbody className="divide-y divide-slate-100">
-              <tr 
-                onClick={() => router.push("/transactions")}
-                className="hover:bg-slate-50/70 transition-colors cursor-pointer"
-              >
-                <td className="py-4 text-slate-500 font-mono text-xs w-32">PP-1001</td>
-                <td className="py-4 font-medium text-slate-700">React Dashboard</td>
-                <td className="py-4 font-bold text-slate-900 text-right w-32">₹3,500</td>
-                <td className="py-4 text-right w-32">
-                  <span className="inline-block px-3 py-1 rounded-full bg-emerald-100/80 text-emerald-700 text-[11.5px] font-bold text-center min-w-[80px]">Completed</span>
-                </td>
-              </tr>
-              <tr 
-                onClick={() => router.push("/transactions")}
-                className="hover:bg-slate-50/70 transition-colors cursor-pointer"
-              >
-                <td className="py-4 text-slate-500 font-mono text-xs w-32">PP-1002</td>
-                <td className="py-4 font-medium text-slate-700">API Development</td>
-                <td className="py-4 font-bold text-slate-900 text-right w-32">₹4,000</td>
-                <td className="py-4 text-right w-32">
-                  <span className="inline-block px-3 py-1 rounded-full bg-emerald-100/80 text-emerald-700 text-[11.5px] font-bold text-center min-w-[80px]">Completed</span>
-                </td>
-              </tr>
-              <tr 
-                onClick={() => router.push("/transactions")}
-                className="hover:bg-slate-50/70 transition-colors cursor-pointer"
-              >
-                <td className="py-4 text-slate-500 font-mono text-xs w-32">PP-1003</td>
-                <td className="py-4 font-medium text-slate-700">Technical Writing</td>
-                <td className="py-4 font-bold text-slate-900 text-right w-32">₹2,500</td>
-                <td className="py-4 text-right w-32">
-                  <span className="inline-block px-3 py-1 rounded-full bg-amber-100/80 text-amber-600 text-[11.5px] font-bold text-center min-w-[80px]">Pending</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        )}
 
       </main>
-
-      {/* Project Application Modal */}
-      {selectedProject && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Project Proposal</span>
-                <h3 className="text-xl font-bold text-slate-900 mt-1">{selectedProject.title}</h3>
-              </div>
-              <button 
-                onClick={() => setSelectedProject(null)}
-                className="text-slate-400 hover:text-slate-600 p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 my-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Your Proposed Bid (₹ INR)</label>
-                <input 
-                  type="number"
-                  value={bidAmount}
-                  onChange={(e) => setBidAmount(Number(e.target.value))}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Cover Note / Approach</label>
-                <textarea 
-                  rows={4}
-                  value={coverLetter}
-                  onChange={(e) => setCoverLetter(e.target.value)}
-                  className="w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Explain why you are the best fit for this project..."
-                />
-              </div>
-
-              <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-2.5 text-xs text-blue-800 font-medium">
-                <AlertCircle className="w-4 h-4 text-blue-600 shrink-0" />
-                <span>Client funds will be held securely via PayPal Sandbox milestone escrow.</span>
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button 
-                onClick={() => setSelectedProject(null)}
-                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleConfirmApplication}
-                disabled={submitting}
-                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {submitting ? "Submitting..." : "Submit Application"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

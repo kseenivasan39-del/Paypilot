@@ -25,7 +25,7 @@ export default function ForFreelancersPage() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 mb-12">
-            <Link href="/dashboard/freelancer" className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 hover:opacity-90 text-white px-8 py-4 rounded-xl font-bold text-[15px] flex items-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all">
+            <Link href="/login?mode=register&role=freelancer" className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 hover:opacity-90 text-white px-8 py-4 rounded-xl font-bold text-[15px] flex items-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all">
               Create Freelancer Profile <ArrowRight className="w-5 h-5" />
             </Link>
             <Link href="/dashboard/freelancer" className="border border-slate-700 hover:bg-slate-800 text-white px-8 py-4 rounded-xl font-bold text-[15px] transition-colors">
@@ -322,7 +322,7 @@ export default function ForFreelancersPage() {
             </div>
           </div>
 
-          <Link href="/dashboard/freelancer" className="relative z-10 bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-white px-8 py-4 rounded-xl font-bold text-[15px] flex items-center gap-2 shadow-[0_0_30px_rgba(56,189,248,0.4)] transition-all shrink-0">
+          <Link href="/login?mode=register&role=freelancer" className="relative z-10 bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-white px-8 py-4 rounded-xl font-bold text-[15px] flex items-center gap-2 shadow-[0_0_30px_rgba(56,189,248,0.4)] transition-all shrink-0">
             Get Started as a Freelancer <ArrowRight className="w-5 h-5" />
           </Link>
         </div>

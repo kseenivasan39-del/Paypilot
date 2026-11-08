@@ -5,7 +5,7 @@ import {
   Home, Folder, Users, CreditCard, MessageSquare, Bot, Settings, 
   Bell, Calendar, ChevronDown, Wallet, FileText, Clock, CheckCircle2, 
   Code2, PenTool, Sparkles, TrendingUp, ArrowUpRight, X, LogOut, Check,
-  ExternalLink, UserCheck, Shield
+  ExternalLink, UserCheck, Shield, RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -81,6 +81,13 @@ export default function ClientDashboard() {
     const config = CURRENCIES[currency];
     const converted = Math.round(baseInr * config.rate);
     return `${config.symbol}${converted.toLocaleString()}`;
+  };
+
+  const handleSwitchToDemoClient = async () => {
+    try {
+      const res = await authApi.loginAsDemoClient();
+      if (res?.user) setCurrentUser(res.user);
+    } catch (e) { console.error(e); }
   };
 
   const handleSignOut = () => {
@@ -343,6 +350,7 @@ export default function ClientDashboard() {
                     </span>
                   </div>
                   <div className="py-1">
+                    <button type="button" onClick={() => { setShowProfileMenu(false); handleSwitchToDemoClient(); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer text-left"><RefreshCw className="w-4 h-4" /><span>Switch to Client</span></button>
                     <Link 
                       href="/settings"
                       onClick={() => setShowProfileMenu(false)}
