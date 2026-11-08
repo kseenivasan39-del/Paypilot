@@ -36,6 +36,8 @@ interface MessageItem {
     name: string;
     size: string;
     type: string;
+    url?: string;
+    isImage?: boolean;
   };
 }
 
@@ -244,6 +246,22 @@ export default function Messages() {
   const [isTyping, setIsTyping] = useState(false);
   const [replyingTo, setReplyingTo] = useState<MessageItem | null>(null);
   const [showPinnedOnly, setShowPinnedOnly] = useState(false);
+  
+  // File Upload & Attachment State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<{
+    file: File;
+    name: string;
+    size: string;
+    type: string;
+    url: string;
+    isImage: boolean;
+  } | null>(null);
+  const [viewingMedia, setViewingMedia] = useState<{
+    name: string;
+    url: string;
+    isImage: boolean;
+  } | null>(null);
 
   // Calling state
   const [callingState, setCallingState] = useState<"none" | "audio" | "video">("none");
@@ -334,14 +352,37 @@ export default function Messages() {
     );
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isImg = file.type.startsWith("image/");
+    const sizeFormatted = file.size > 1024 * 1024 
+      ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+      : `${Math.round(file.size / 1024)} KB`;
+
+    const blobUrl = URL.createObjectURL(file);
+    setPreviewAttachment({
+      file,
+      name: file.name,
+      size: sizeFormatted,
+      type: file.type.includes("pdf") ? "PDF" : (isImg ? "IMAGE" : "FILE"),
+      url: blobUrl,
+      isImage: isImg
+    });
+
+    // Reset input so re-selecting same file works
+    e.target.value = "";
+  };
+
   const handleSendMessage = (textToSend?: string) => {
     const text = (textToSend || inputText).trim();
-    if (!text) return;
+    if (!text && !previewAttachment) return;
 
     const newMsg: MessageItem = {
       id: `msg-${Date.now()}`,
       sender: "client",
-      text,
+      text: text || (previewAttachment ? `Shared attachment: ${previewAttachment.name}` : ""),
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       isDelivered: true,
       isRead: false,
@@ -350,6 +391,13 @@ export default function Messages() {
         sender: replyingTo.sender,
         senderName: replyingTo.sender === "client" ? "You" : activeThread.name,
         text: replyingTo.text
+      } : undefined,
+      attachment: previewAttachment ? {
+        name: previewAttachment.name,
+        size: previewAttachment.size,
+        type: previewAttachment.type,
+        url: previewAttachment.url,
+        isImage: previewAttachment.isImage
       } : undefined
     };
 
@@ -359,6 +407,7 @@ export default function Messages() {
 
     setInputText("");
     setReplyingTo(null);
+    setPreviewAttachment(null);
 
     // Trigger double-tick read after 600ms
     setTimeout(() => {
@@ -756,20 +805,54 @@ export default function Messages() {
 
                       {/* Attachment if present */}
                       {msg.attachment && (
-                        <div className="mt-2 bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3 w-[260px] shadow-sm hover:border-blue-300 transition-all cursor-pointer">
-                          <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                            <FileText className="w-4 h-4 text-red-500" />
+                        <div 
+                          onClick={() => {
+                            if (msg.attachment?.url) {
+                              setViewingMedia({
+                                name: msg.attachment.name,
+                                url: msg.attachment.url,
+                                isImage: !!msg.attachment.isImage
+                              });
+                            } else {
+                              alert(`Sample Document: ${msg.attachment?.name} (${msg.attachment?.size})`);
+                            }
+                          }}
+                          className="mt-2 bg-white border border-slate-200 rounded-2xl p-2.5 flex flex-col gap-2 max-w-[280px] shadow-sm hover:border-blue-300 transition-all cursor-pointer group/att"
+                        >
+                          {/* Image Thumbnail preview if image */}
+                          {msg.attachment.isImage && msg.attachment.url ? (
+                            <div className="w-full h-36 rounded-xl overflow-hidden bg-slate-100 relative">
+                              <img 
+                                src={msg.attachment.url} 
+                                alt={msg.attachment.name} 
+                                className="w-full h-full object-cover group-hover/att:scale-105 transition-transform" 
+                              />
+                            </div>
+                          ) : null}
+
+                          <div className="flex items-center gap-2.5 px-1">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${msg.attachment.isImage ? "bg-cyan-50 text-cyan-600" : "bg-red-50 text-red-500"}`}>
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-xs font-bold text-slate-900 truncate">{msg.attachment.name}</h4>
+                              <p className="text-[10px] font-medium text-slate-500">{msg.attachment.size} • {msg.attachment.type}</p>
+                            </div>
+                            <a 
+                              href={msg.attachment.url || "#"} 
+                              download={msg.attachment.name}
+                              onClick={(e) => {
+                                if (!msg.attachment?.url) {
+                                  e.preventDefault();
+                                  alert(`Downloading sample: ${msg.attachment?.name}`);
+                                }
+                              }}
+                              className="text-blue-600 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 cursor-pointer"
+                              title="Download attachment"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-bold text-slate-900 truncate">{msg.attachment.name}</h4>
-                            <p className="text-[10px] font-medium text-slate-500">{msg.attachment.size} • {msg.attachment.type}</p>
-                          </div>
-                          <button 
-                            onClick={() => alert(`Downloading sample deliverable archive: ${msg.attachment?.name}`)}
-                            className="text-blue-600 hover:text-blue-700 p-1 rounded-full hover:bg-blue-50 cursor-pointer"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
                         </div>
                       )}
 
@@ -836,6 +919,37 @@ export default function Messages() {
               </div>
             )}
 
+            {/* Attached File Preview Bar before Sending */}
+            {previewAttachment && (
+              <div className="px-6 py-2 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs animate-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[10px] ${previewAttachment.isImage ? "bg-cyan-100 text-cyan-800" : "bg-red-100 text-red-800"}`}>
+                    {previewAttachment.type}
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-900 block truncate max-w-xs">{previewAttachment.name}</span>
+                    <span className="text-[10px] text-slate-500">{previewAttachment.size} • Ready to send</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewAttachment(null)}
+                  className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Hidden File Input for PDF & Images */}
+            <input 
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept="image/*,application/pdf,.pdf,.png,.jpg,.jpeg,.webp"
+              className="hidden"
+            />
+
             {/* Input Area */}
             <div className="p-4 border-t border-slate-100 bg-white">
               <form 
@@ -847,9 +961,9 @@ export default function Messages() {
               >
                 <button 
                   type="button"
-                  onClick={() => alert("Upload file: Select PDF, ZIP archive or Figma link to share with freelancer.")}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full transition-colors cursor-pointer"
-                  title="Attach file"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-1.5 text-slate-400 hover:text-blue-600 rounded-full transition-colors cursor-pointer"
+                  title="Upload Image or PDF"
                 >
                   <Paperclip className="w-4 h-4" />
                 </button>
@@ -857,12 +971,12 @@ export default function Messages() {
                   type="text" 
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder={`Message ${activeThread.name}...`} 
+                  placeholder={previewAttachment ? `Add a caption for ${previewAttachment.name}...` : `Message ${activeThread.name}...`} 
                   className="flex-1 bg-transparent text-sm text-slate-700 outline-none px-2 placeholder:text-slate-400"
                 />
                 <button 
                   type="submit"
-                  disabled={!inputText.trim()}
+                  disabled={!inputText.trim() && !previewAttachment}
                   className="w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors shadow-md disabled:opacity-40 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5 ml-0.5" />
@@ -1090,6 +1204,56 @@ export default function Messages() {
                     <p className="text-[11px] text-slate-500">Full Stack Engineer & Consultant</p>
                   </div>
                   <span className="text-xs text-blue-600 font-bold">Chat &rarr;</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox: Media & Document Viewer */}
+      {viewingMedia && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden relative flex flex-col">
+            <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-400" />
+                <span className="text-xs font-bold truncate max-w-sm">{viewingMedia.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={viewingMedia.url}
+                  download={viewingMedia.name}
+                  className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-1 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" /> Download
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setViewingMedia(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 bg-slate-100 flex items-center justify-center max-h-[70vh] overflow-auto">
+              {viewingMedia.isImage ? (
+                <img 
+                  src={viewingMedia.url} 
+                  alt={viewingMedia.name} 
+                  className="max-h-[60vh] rounded-xl object-contain shadow-md"
+                />
+              ) : (
+                <div className="text-center py-12 space-y-3">
+                  <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                    <FileText className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm">{viewingMedia.name}</h4>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                    PDF deliverable ready for inspection. Click download to review complete pages locally.
+                  </p>
                 </div>
               )}
             </div>
