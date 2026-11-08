@@ -79,7 +79,7 @@ export default function FreelancerProfilePage() {
             <div className="flex items-center gap-6">
               <div className="relative">
                 <img 
-                  src="https://i.pravatar.cc/150?u=rahul" 
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=250&auto=format&fit=crop&q=80" 
                   alt="Rahul Kumar"
                   className="w-24 h-24 rounded-full object-cover border-4 border-slate-50 shadow-md"
                 />

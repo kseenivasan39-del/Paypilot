@@ -15,7 +15,7 @@ interface UserProfileMenuProps {
 
 export default function UserProfileMenu({
   className = "",
-  avatarUrl = "https://i.pravatar.cc/150?u=sarah",
+  avatarUrl,
   fallbackName = "Sarah Johnson",
   fallbackRole = "Client",
 }: UserProfileMenuProps) {
@@ -27,6 +27,13 @@ export default function UserProfileMenu({
     email: "client@paypilot.demo",
     role: fallbackRole,
   });
+
+  // Pick suitable avatar according to role or provided prop
+  const resolvedAvatar = avatarUrl || (
+    (user.role?.toLowerCase() === "freelancer" || fallbackRole.toLowerCase() === "freelancer")
+      ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+      : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80"
+  );
 
   // Load user from localStorage if logged in
   useEffect(() => {
@@ -78,7 +85,7 @@ export default function UserProfileMenu({
       >
         <div className="relative">
           <img
-            src={avatarUrl}
+            src={resolvedAvatar}
             alt={user.full_name || "User"}
             className="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm"
           />
