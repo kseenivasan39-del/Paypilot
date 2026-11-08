@@ -15,9 +15,13 @@ import UserProfileMenu from "@/components/UserProfileMenu";
 
 interface Message {
   id: number;
-  sender: "client" | "freelancer";
+  sender: "client" | "freelancer" | "system";
   text: string;
   time: string;
+  callEvent?: {
+    type: "started" | "ended";
+    duration?: string;
+  };
   attachment?: {
     type: "code" | "file" | "milestone";
     title: string;
@@ -408,26 +412,37 @@ export default function FreelancerMessagesPage() {
                   <span>Submit Deliverable</span>
                 </button>
 
-                {/* Live Call Button (Instant Audio/Video Sync) */}
+                {/* Call Symbol Only */}
                 <button
                   type="button"
                   onClick={() => {
                     setIsLiveCallActive(true);
                     setIsMicMuted(false);
                     setIsVideoMuted(false);
+                    // Add WhatsApp style Call Started message
+                    const startMsg: Message = {
+                      id: Date.now(),
+                      sender: "system",
+                      text: `Audio call started with ${activeConv.clientName}`,
+                      time: "Just now",
+                      callEvent: { type: "started" }
+                    };
+                    setMessageHistories((prev) => ({
+                      ...prev,
+                      [activeConv.id]: [...(prev[activeConv.id] || []), startMsg]
+                    }));
                   }}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
-                  title="Start Live Call with Client"
+                  className="w-9 h-9 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-xs hover:scale-105 active:scale-95"
+                  title={`Call ${activeConv.clientName}`}
                 >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Call Client</span>
+                  <Phone className="w-4 h-4 text-emerald-600" />
                 </button>
 
-                {/* Schedule Call */}
+                {/* Schedule Video Call */}
                 <button
                   type="button"
                   onClick={() => setIsScheduleCallOpen(true)}
-                  className="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 transition-colors cursor-pointer"
+                  className="w-9 h-9 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                   title="Schedule Milestone Sync Call"
                 >
                   <Video className="w-4 h-4 text-slate-600" />
@@ -457,48 +472,72 @@ export default function FreelancerMessagesPage() {
                 </div>
               </div>
 
-              {activeMessages.map((m) => (
-                <div 
-                  key={m.id}
-                  className={`flex ${m.sender === "freelancer" ? "justify-end" : "justify-start"}`}
-                >
-                  <div className={`max-w-lg p-4 rounded-2xl text-xs leading-relaxed space-y-2 ${
-                    m.sender === "freelancer"
-                      ? "bg-blue-600 text-white rounded-br-xs shadow-md shadow-blue-500/20"
-                      : "bg-white text-slate-800 border border-slate-200 rounded-bl-xs shadow-sm"
-                  }`}>
-                    <p className="whitespace-pre-line">{m.text}</p>
-
-                    {/* Rich Attachment Snippet */}
-                    {m.attachment && (
-                      <div className={`p-3 rounded-xl border mt-2 ${
-                        m.sender === "freelancer"
-                          ? "bg-blue-700/60 border-blue-400/40 text-white"
-                          : "bg-slate-50 border-slate-200 text-slate-800"
-                      }`}>
-                        <div className="flex items-center justify-between font-bold text-xs mb-1">
-                          <span className="flex items-center gap-1.5">
-                            {m.attachment.type === "code" ? <FileCode className="w-4 h-4 text-cyan-300" /> : <FileText className="w-4 h-4 text-amber-400" />}
-                            {m.attachment.title}
-                          </span>
-                          {m.attachment.url && (
-                            <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                          )}
+              {activeMessages.map((m) => {
+                // WhatsApp-style system call card
+                if (m.sender === "system" && m.callEvent) {
+                  const isStarted = m.callEvent.type === "started";
+                  return (
+                    <div key={m.id} className="flex justify-center my-2">
+                      <div className="flex items-center gap-2.5 px-4 py-2 bg-slate-100/90 border border-slate-200/90 rounded-2xl shadow-xs text-xs">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                          isStarted ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"
+                        }`}>
+                          {isStarted ? <Phone className="w-3.5 h-3.5" /> : <PhoneOff className="w-3.5 h-3.5" />}
                         </div>
-                        <p className={`text-[11px] ${m.sender === "freelancer" ? "text-blue-100" : "text-slate-500"}`}>
-                          {m.attachment.detail}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-slate-800">
+                            {isStarted ? `Call started with ${activeConv.clientName}` : `Call ended (${m.callEvent.duration || "00:00"})`}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">• {m.time}</span>
+                        </div>
                       </div>
-                    )}
+                    </div>
+                  );
+                }
 
-                    <span className={`block text-[10px] mt-1 ${
-                      m.sender === "freelancer" ? "text-blue-200 text-right" : "text-slate-400"
+                return (
+                  <div 
+                    key={m.id}
+                    className={`flex ${m.sender === "freelancer" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div className={`max-w-lg p-4 rounded-2xl text-xs leading-relaxed space-y-2 ${
+                      m.sender === "freelancer"
+                        ? "bg-blue-600 text-white rounded-br-xs shadow-md shadow-blue-500/20"
+                        : "bg-white text-slate-800 border border-slate-200 rounded-bl-xs shadow-sm"
                     }`}>
-                      {m.time}
-                    </span>
+                      <p className="whitespace-pre-line">{m.text}</p>
+
+                      {/* Rich Attachment Snippet */}
+                      {m.attachment && (
+                        <div className={`p-3 rounded-xl border mt-2 ${
+                          m.sender === "freelancer"
+                            ? "bg-blue-700/60 border-blue-400/40 text-white"
+                            : "bg-slate-50 border-slate-200 text-slate-800"
+                        }`}>
+                          <div className="flex items-center justify-between font-bold text-xs mb-1">
+                            <span className="flex items-center gap-1.5">
+                              {m.attachment.type === "code" ? <FileCode className="w-4 h-4 text-cyan-300" /> : <FileText className="w-4 h-4 text-amber-400" />}
+                              {m.attachment.title}
+                            </span>
+                            {m.attachment.url && (
+                              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                            )}
+                          </div>
+                          <p className={`text-[11px] ${m.sender === "freelancer" ? "text-blue-100" : "text-slate-500"}`}>
+                            {m.attachment.detail}
+                          </p>
+                        </div>
+                      )}
+
+                      <span className={`block text-[10px] mt-1 ${
+                        m.sender === "freelancer" ? "text-blue-200 text-right" : "text-slate-400"
+                      }`}>
+                        {m.time}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
 
@@ -847,9 +886,26 @@ export default function FreelancerMessagesPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    const durFormatted = formatCallTime(callDuration);
                     setIsLiveCallActive(false);
-                    handleSend(`📞 Call with ${activeConv.clientName} ended (${formatCallTime(callDuration)}). Milestone action items noted.`);
-                    setToastMsg(`Call ended • Duration: ${formatCallTime(callDuration)}`);
+
+                    // Add WhatsApp style Call Ended message
+                    const endMsg: Message = {
+                      id: Date.now(),
+                      sender: "system",
+                      text: `Audio call ended`,
+                      time: "Just now",
+                      callEvent: {
+                        type: "ended",
+                        duration: durFormatted
+                      }
+                    };
+                    setMessageHistories((prev) => ({
+                      ...prev,
+                      [activeConv.id]: [...(prev[activeConv.id] || []), endMsg]
+                    }));
+
+                    setToastMsg(`Call ended • Duration: ${durFormatted}`);
                     setTimeout(() => setToastMsg(null), 3500);
                   }}
                   className="px-6 h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-600/30 transition-all cursor-pointer"
