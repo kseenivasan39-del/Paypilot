@@ -5,6 +5,7 @@ import {
   Bell, Calendar, CheckCircle2, Star, ArrowRight, Sparkles, Loader2, Info
 } from "lucide-react";
 import Link from "next/link";
+import AppSidebar from "@/components/AppSidebar";
 import NotificationBell from "@/components/NotificationBell";
 import UserProfileMenu from "@/components/UserProfileMenu";
 import CalendarDeadlinesMenu from "@/components/CalendarDeadlinesMenu";
@@ -240,70 +241,7 @@ export default function FreelancerMatching() {
     <div className="flex min-h-screen bg-[#F8FAFC] font-sans">
       
       {/* Sidebar */}
-      <aside className="w-[280px] bg-[#0B1120] text-slate-300 flex flex-col h-screen sticky top-0 shrink-0">
-        <Link href="/" className="p-6 flex items-center gap-3 mb-4 hover:opacity-90 transition-opacity">
-          <div className="bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-white">
-              <path fillRule="evenodd" d="M11.47 2.47a.75.75 0 011.06 0l7.5 7.5a.75.75 0 11-1.06 1.06l-6.22-6.22V21a.75.75 0 01-1.5 0V4.81l-6.22 6.22a.75.75 0 11-1.06-1.06l7.5-7.5z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <span className="text-2xl font-bold text-white tracking-tight">PayPilot</span>
-        </Link>
-
-        <nav className="flex-1 px-4 space-y-1">
-          <Link href="/dashboard/client" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Home className="w-5 h-5" />
-            <span className="font-medium">Dashboard</span>
-          </Link>
-          <Link href="/projects/new" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors text-blue-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-            <span className="font-medium">Create Project</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Folder className="w-5 h-5" />
-            <span className="font-medium">My Projects</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl shadow-lg shadow-blue-900/20 transition-colors">
-            <Users className="w-5 h-5" />
-            <span className="font-medium">Find Freelancers</span>
-          </Link>
-          <Link href="/transactions" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <CreditCard className="w-5 h-5" />
-            <span className="font-medium">Transactions</span>
-          </Link>
-          <Link href="/messages" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors relative">
-            <MessageSquare className="w-5 h-5" />
-            <span className="font-medium">Messages</span>
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-500 rounded-full"></span>
-          </Link>
-          <Link href="/ai" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors">
-            <Bot className="w-5 h-5" />
-            <span className="font-medium">AI Assistant</span>
-          </Link>
-          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 hover:text-white rounded-xl transition-colors mt-4">
-            <Settings className="w-5 h-5" />
-            <span className="font-medium">Settings</span>
-          </Link>
-        </nav>
-
-        {/* Sidebar Bottom CTA */}
-        <div className="p-4 mt-auto">
-          <div className="bg-gradient-to-br from-indigo-900 to-blue-900 rounded-2xl p-5 relative overflow-hidden shadow-xl shadow-black/50 text-left">
-            <div className="absolute top-[-20px] right-[-20px] w-24 h-24 bg-blue-500/30 blur-xl rounded-full"></div>
-            <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 bg-purple-500/30 blur-xl rounded-full"></div>
-            
-            <div className="relative z-10 flex flex-col h-full">
-              <Bot className="w-12 h-12 text-cyan-400 mb-3 drop-shadow-[0_0_12px_rgba(34,211,238,0.8)] mx-auto" />
-              <p className="text-[15px] font-bold text-white mb-5 leading-snug">
-                Let AI find the right talent for you.
-              </p>
-              <Link href="/projects/new" className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-400 hover:to-cyan-300 text-white text-sm font-bold py-2.5 rounded-xl shadow-lg shadow-blue-900/50 transition-all flex justify-center items-center gap-1">
-                Try AI Matching &rarr;
-              </Link>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <AppSidebar activePage="find-projects" />
 
       {/* Main Content Area */}
       <main className="flex-1 p-8 max-w-[1300px]">
