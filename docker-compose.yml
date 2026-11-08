@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: paypilot-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: paypilot
+      POSTGRES_PASSWORD: paypilot_secure_password
+      POSTGRES_DB: paypilot_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paypilot -d paypilot_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: paypilot-backend
+    restart: always
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "False"
+      DATABASE_URL: postgresql://paypilot:paypilot_secure_password@db:5432/paypilot_db
+      SECRET_KEY: ${SECRET_KEY:-paypilot-production-super-secret-key-2026}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-mock_sandbox_client_id}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-mock_sandbox_client_secret}
+      PAYPAL_BASE_URL: ${PAYPAL_BASE_URL:-https://api-m.sandbox.paypal.com}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL_NAME: ${AI_MODEL_NAME:-gemini-1.5-flash}
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: paypilot-frontend
+    restart: always
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://backend:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
