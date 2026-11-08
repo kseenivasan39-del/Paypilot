@@ -28,7 +28,7 @@ export default function ForFreelancersPage() {
             <Link href="/login?mode=register&role=freelancer" className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 hover:opacity-90 text-white px-8 py-4 rounded-xl font-bold text-[15px] flex items-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all">
               Create Freelancer Profile <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link href="/freelancer/find-projects" className="border border-slate-700 hover:bg-slate-800 text-white px-8 py-4 rounded-xl font-bold text-[15px] transition-colors">
+            <Link href="/projects" className="border border-slate-700 hover:bg-slate-800 text-white px-8 py-4 rounded-xl font-bold text-[15px] transition-colors">
               Browse Projects
             </Link>
           </div>
@@ -330,4 +330,5 @@ export default function ForFreelancersPage() {
     </>
   );
 }
+
 
