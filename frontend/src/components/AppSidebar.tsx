@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { 
   Home, Briefcase, FileText, DollarSign, MessageSquare, 
   Bot, Settings, Folder, Users, CreditCard, Flame, ArrowRight
@@ -12,9 +13,16 @@ interface AppSidebarProps {
 }
 
 export default function AppSidebar({ activePage }: AppSidebarProps) {
+  const pathname = usePathname();
   const [role, setRole] = useState<"client" | "freelancer">("freelancer");
 
   useEffect(() => {
+    // If the URL begins with /freelancer or is /dashboard/freelancer, force role to freelancer
+    if (pathname.includes("/freelancer")) {
+      setRole("freelancer");
+      return;
+    }
+
     try {
       const stored = localStorage.getItem("paypilot_user");
       if (stored) {
@@ -28,7 +36,7 @@ export default function AppSidebar({ activePage }: AppSidebarProps) {
     } catch {
       // Default to freelancer
     }
-  }, []);
+  }, [pathname]);
 
   const isFreelancer = role === "freelancer";
 
@@ -65,10 +73,10 @@ export default function AppSidebar({ activePage }: AppSidebarProps) {
         </Link>
 
         {isFreelancer ? (
-          /* FREELANCER NAVIGATION */
+          /* DEDICATED FREELANCER NAVIGATION PAGES */
           <>
             <Link 
-              href="/projects/matching"
+              href="/freelancer/find-projects"
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activePage === "find-projects"
                   ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
@@ -80,7 +88,7 @@ export default function AppSidebar({ activePage }: AppSidebarProps) {
             </Link>
 
             <Link 
-              href="/messages"
+              href="/freelancer/proposals"
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activePage === "my-projects"
                   ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
@@ -92,7 +100,7 @@ export default function AppSidebar({ activePage }: AppSidebarProps) {
             </Link>
 
             <Link 
-              href="/transactions"
+              href="/freelancer/earnings"
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activePage === "earnings"
                   ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
@@ -102,9 +110,46 @@ export default function AppSidebar({ activePage }: AppSidebarProps) {
               <DollarSign className="w-5 h-5 text-emerald-400" />
               <span>Earnings & Payouts</span>
             </Link>
+
+            <Link 
+              href="/freelancer/messages"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative ${
+                activePage === "messages"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
+                  : "hover:bg-slate-800/50 hover:text-white font-medium"
+              }`}
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span>Messages</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-500 rounded-full"></span>
+            </Link>
+
+            <Link 
+              href="/freelancer/ai"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                activePage === "ai"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
+                  : "hover:bg-slate-800/50 hover:text-white font-medium"
+              }`}
+            >
+              <Flame className="w-5 h-5 text-amber-400" />
+              <span>AI Milestone Assistant</span>
+            </Link>
+
+            <Link 
+              href="/freelancer/profile"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all mt-4 ${
+                activePage === "settings"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
+                  : "hover:bg-slate-800/50 hover:text-white font-medium"
+              }`}
+            >
+              <Settings className="w-5 h-5" />
+              <span>Profile & Skills</span>
+            </Link>
           </>
         ) : (
-          /* CLIENT NAVIGATION */
+          /* CLIENT NAVIGATION PAGES */
           <>
             <Link 
               href="/projects/new" 
@@ -149,50 +194,45 @@ export default function AppSidebar({ activePage }: AppSidebarProps) {
               <CreditCard className="w-5 h-5" />
               <span>Transactions</span>
             </Link>
+
+            <Link 
+              href="/messages" 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative ${
+                activePage === "messages"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
+                  : "hover:bg-slate-800/50 hover:text-white font-medium"
+              }`}
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span>Messages</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-500 rounded-full"></span>
+            </Link>
+
+            <Link 
+              href="/ai" 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                activePage === "ai"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
+                  : "hover:bg-slate-800/50 hover:text-white font-medium"
+              }`}
+            >
+              <Bot className="w-5 h-5 text-blue-400" />
+              <span>AI Assistant</span>
+            </Link>
+
+            <Link 
+              href="/settings" 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all mt-4 ${
+                activePage === "settings"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
+                  : "hover:bg-slate-800/50 hover:text-white font-medium"
+              }`}
+            >
+              <Settings className="w-5 h-5" />
+              <span>Settings</span>
+            </Link>
           </>
         )}
-
-        {/* Shared items with role awareness */}
-        <Link 
-          href="/messages" 
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative ${
-            activePage === "messages"
-              ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
-              : "hover:bg-slate-800/50 hover:text-white font-medium"
-          }`}
-        >
-          <MessageSquare className="w-5 h-5" />
-          <span>Messages</span>
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-500 rounded-full"></span>
-        </Link>
-
-        <Link 
-          href="/ai" 
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-            activePage === "ai"
-              ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
-              : "hover:bg-slate-800/50 hover:text-white font-medium"
-          }`}
-        >
-          {isFreelancer ? (
-            <Flame className="w-5 h-5 text-amber-400" />
-          ) : (
-            <Bot className="w-5 h-5 text-blue-400" />
-          )}
-          <span>{isFreelancer ? "AI Milestone Assistant" : "AI Assistant"}</span>
-        </Link>
-
-        <Link 
-          href="/settings" 
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all mt-4 ${
-            activePage === "settings"
-              ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-900/20 font-bold"
-              : "hover:bg-slate-800/50 hover:text-white font-medium"
-          }`}
-        >
-          <Settings className="w-5 h-5" />
-          <span>{isFreelancer ? "Profile & Skills" : "Settings"}</span>
-        </Link>
       </nav>
 
       {/* Role Switcher in Sidebar footer */}
