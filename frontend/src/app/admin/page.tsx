@@ -365,7 +365,13 @@ function AdminDashboardContent() {
 
       {/* RIGHT SIDE: Crisp White / Light Workspace */}
       <main className="flex-1 p-8 max-w-[1600px] flex flex-col bg-[#F8FAFC]">
-        {/* Top Header with Profile Pin on Extreme Top Right */}
+        {/* TOP BAR: Dedicated Top-Right Utility Bar pinning the Admin Profile and Notifications to the absolute top-right corner */}
+        <div className="flex items-center justify-end gap-3 pb-3 mb-2 border-b border-slate-100">
+          <NotificationBell />
+          <UserProfileMenu fallbackName="PayPilot Admin" fallbackRole="Admin" />
+        </div>
+
+        {/* Header with Title and Action Buttons */}
         <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8 border-b border-slate-200/80 pb-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
@@ -383,49 +389,35 @@ function AdminDashboardContent() {
             </p>
           </div>
 
-          {/* Action Tools & Top Right Profile Suite */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Action Bar Actions */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowKillSwitchConfirm(true)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-xs ${
-                  killSwitchActive
-                    ? "bg-red-600 text-white animate-pulse border border-red-700"
-                    : "bg-white border border-slate-300 text-slate-700 hover:border-red-400 hover:text-red-600"
-                }`}
-              >
-                <Power className={`w-3.5 h-3.5 ${killSwitchActive ? "text-white" : "text-red-500"}`} />
-                <span>{killSwitchActive ? "EMERGENCY HALT" : "Emergency Kill-Switch"}</span>
-              </button>
+          {/* Action Toolbar */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => setShowKillSwitchConfirm(true)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black transition-all shadow-xs ${
+                killSwitchActive
+                  ? "bg-red-600 text-white animate-pulse border border-red-700"
+                  : "bg-white border border-slate-300 text-slate-700 hover:border-red-400 hover:text-red-600"
+              }`}
+            >
+              <Power className={`w-3.5 h-3.5 ${killSwitchActive ? "text-white" : "text-red-500"}`} />
+              <span>{killSwitchActive ? "EMERGENCY HALT" : "Emergency Kill-Switch"}</span>
+            </button>
 
-              <button
-                onClick={handleSimulateMockContract}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs shadow-blue-500/20 transition-all"
-              >
-                <PlusCircle className="w-3.5 h-3.5" />
-                <span>Inject Mock Escrow</span>
-              </button>
+            <button
+              onClick={handleSimulateMockContract}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs shadow-blue-500/20 transition-all"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>Inject Mock Escrow</span>
+            </button>
 
-              <button
-                onClick={handleExportCSV}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold shadow-xs transition-all"
-              >
-                <Download className="w-3.5 h-3.5 text-blue-600" />
-                <span>Export Ledger (CSV)</span>
-              </button>
-            </div>
-
-            {/* Separator */}
-            <div className="hidden sm:block h-6 w-px bg-slate-200" />
-
-            {/* Notifications & Top-Right Profile Pill */}
-            <div className="flex items-center gap-3">
-              <NotificationBell />
-              <div className="pl-1">
-                <UserProfileMenu fallbackName="PayPilot Admin" fallbackRole="Admin" />
-              </div>
-            </div>
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold shadow-xs transition-all"
+            >
+              <Download className="w-3.5 h-3.5 text-blue-600" />
+              <span>Export Ledger (CSV)</span>
+            </button>
           </div>
         </header>
 
