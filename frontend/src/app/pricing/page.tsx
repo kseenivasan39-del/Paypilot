@@ -307,7 +307,9 @@ export default function PricingPage() {
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3 h-3 text-white" /></div>
-                  <span className="text-[12px] text-slate-300">Priority support (24/7)</span>
+                  <span className="text-[12px] text-slate-300">
+                    Priority support <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 ml-1">24/7 Dedicated</span>
+                  </span>
                 </div>
               </div>
 
@@ -424,8 +426,18 @@ export default function PricingPage() {
             <div className="grid grid-cols-4 border-b border-slate-800/50">
               <div className="p-4 text-[13px] text-slate-300">Priority Support</div>
               <div className="p-4 flex items-center justify-center"><Minus className="w-4 h-4 text-slate-600" /></div>
-              <div className="p-4 flex items-center justify-center border-x border-blue-600/30 bg-blue-900/5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /></div>
-              <div className="p-4 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> (24/7)</div>
+              <div className="p-4 flex items-center justify-center border-x border-blue-600/30 bg-blue-900/5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>Standard Priority</span>
+                </span>
+              </div>
+              <div className="p-4 flex items-center justify-center">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>24/7 Dedicated</span>
+                </span>
+              </div>
             </div>
             
             {/* Row 6 */}
