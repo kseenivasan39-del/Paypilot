@@ -11,16 +11,16 @@ interface AdminSidebarProps {
   activeTab?: string;
 }
 
-export default function AdminSidebar({ activeTab = "overview" }: AdminSidebarProps) {
+export default function AdminSidebar({ activeTab }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
     { id: "overview", label: "Protocol Overview", icon: LayoutDashboard, href: "/admin" },
-    { id: "disputes", label: "Dispute Arbitration", icon: ShieldAlert, href: "/admin?tab=disputes", badge: "1 Active" },
-    { id: "escrow", label: "PayPal Escrow Vault", icon: Lock, href: "/admin?tab=escrow" },
-    { id: "users", label: "User Management", icon: Users, href: "/admin?tab=users" },
-    { id: "ai", label: "Gemini AI Verification Logs", icon: Cpu, href: "/admin?tab=ai" },
-    { id: "audit", label: "System Audit Trail", icon: Activity, href: "/admin?tab=audit" }
+    { id: "disputes", label: "Dispute Arbitration", icon: ShieldAlert, href: "/admin/disputes", badge: "1 Active" },
+    { id: "escrow", label: "PayPal Escrow Vault", icon: Lock, href: "/admin/escrow" },
+    { id: "users", label: "User Management", icon: Users, href: "/admin/users" },
+    { id: "ai", label: "Gemini AI Verification Logs", icon: Cpu, href: "/admin/ai" },
+    { id: "audit", label: "System Audit Trail", icon: Activity, href: "/admin/audit" }
   ];
 
   return (
@@ -47,7 +47,9 @@ export default function AdminSidebar({ activeTab = "overview" }: AdminSidebarPro
         </div>
 
         {navItems.map((item) => {
-          const isActive = activeTab === item.id;
+          const isActive = activeTab ? activeTab === item.id : (
+            item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href)
+          );
           const Icon = item.icon;
           return (
             <Link
