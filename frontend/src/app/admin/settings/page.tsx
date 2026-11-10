@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
+import AdminSettingsNav from "@/components/AdminSettingsNav";
 import NotificationBell from "@/components/NotificationBell";
 import UserProfileMenu from "@/components/UserProfileMenu";
 import { 
@@ -46,6 +47,9 @@ export default function AdminSettingsPage() {
             <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Admin Account & Protocol Preferences</h1>
           </div>
         </header>
+
+        {/* Quick Horizontal Tab Bar for Easy Access */}
+        <AdminSettingsNav />
 
         <div className="p-8 space-y-6 max-w-4xl">
           {actionSuccess && (

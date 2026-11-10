@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
+import AdminSettingsNav from "@/components/AdminSettingsNav";
 import NotificationBell from "@/components/NotificationBell";
 import UserProfileMenu from "@/components/UserProfileMenu";
 import { 
@@ -105,6 +106,9 @@ export default function AdminSecurityPage() {
             <span>Emergency Purge Other Sessions</span>
           </button>
         </header>
+
+        {/* Quick Horizontal Tab Bar for Easy Access */}
+        <AdminSettingsNav />
 
         <div className="p-8 space-y-6 max-w-5xl">
           {actionSuccess && (

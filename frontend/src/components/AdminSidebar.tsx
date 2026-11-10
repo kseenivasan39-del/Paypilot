@@ -23,6 +23,13 @@ export default function AdminSidebar({ activeTab }: AdminSidebarProps) {
     { id: "audit", label: "System Audit Trail", icon: Activity, href: "/admin/audit" }
   ];
 
+  const adminAccountItems = [
+    { id: "profile", label: "Admin Profile", icon: Users, href: "/admin/profile" },
+    { id: "settings", label: "Protocol Settings", icon: Settings, href: "/admin/settings" },
+    { id: "security", label: "Security & Sessions", icon: ShieldAlert, href: "/admin/security" },
+    { id: "treasury", label: "Treasury & Reserves", icon: CreditCard, href: "/admin/treasury" },
+  ];
+
   return (
     <aside className="w-[280px] bg-[#0A1628] text-slate-300 flex flex-col h-screen sticky top-0 shrink-0 select-none border-r border-blue-900/40">
       {/* Brand Header */}
@@ -41,8 +48,8 @@ export default function AdminSidebar({ activeTab }: AdminSidebarProps) {
       </Link>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
-        <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-blue-300/70">
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+        <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-300/70">
           Supervisory Controls
         </div>
 
@@ -55,7 +62,7 @@ export default function AdminSidebar({ activeTab }: AdminSidebarProps) {
             <Link
               key={item.id}
               href={item.href}
-              className={`flex items-center justify-between px-3.5 py-3 rounded-xl transition-all text-xs font-bold ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-xs font-bold ${
                 isActive
                   ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/30 font-extrabold"
                   : "text-slate-300 hover:bg-blue-900/40 hover:text-white"
@@ -70,6 +77,31 @@ export default function AdminSidebar({ activeTab }: AdminSidebarProps) {
                   {item.badge}
                 </span>
               )}
+            </Link>
+          );
+        })}
+
+        <div className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-300/70">
+          Admin Account & Ops
+        </div>
+
+        {adminAccountItems.map((item) => {
+          const isActive = activeTab ? activeTab === item.id : pathname.startsWith(item.href);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`flex items-center justify-between px-3.5 py-2 rounded-xl transition-all text-xs font-semibold ${
+                isActive
+                  ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/30 font-extrabold"
+                  : "text-slate-300 hover:bg-blue-900/40 hover:text-white"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-400"}`} />
+                <span>{item.label}</span>
+              </div>
             </Link>
           );
         })}
