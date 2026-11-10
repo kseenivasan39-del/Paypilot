@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, FileText, Users, ListChecks, CreditCard, Sparkles, ShieldCheck, FileCheck2, ChevronRight, ChevronLeft, Quote } from "lucide-react";
+import { ArrowRight, CheckCircle2, FileText, Users, ListChecks, CreditCard, Sparkles, ShieldCheck, FileCheck2, ChevronRight } from "lucide-react";
+import TestimonialCarousel from "@/components/TestimonialCarousel";
 
 export default function ForClientsPage() {
   return (
@@ -298,40 +299,8 @@ export default function ForClientsPage() {
         </div>
       </section>
 
-      {/* Testimonial */}
-      <section className="relative z-20 px-10 py-10 max-w-[1400px] mx-auto">
-        <div className="bg-[#0B1120] border border-slate-800 rounded-3xl p-8 flex items-center justify-between gap-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-900/10 blur-[80px] rounded-full pointer-events-none"></div>
-          
-          <div className="flex gap-6 items-center">
-            <img src="https://i.pravatar.cc/150?u=amit" className="w-20 h-20 rounded-full border-4 border-slate-800" alt="Amit Verma" />
-            <div>
-              <Quote className="w-6 h-6 text-blue-500 mb-2 opacity-50" />
-              <p className="text-[15px] text-slate-300 leading-relaxed max-w-3xl mb-4">
-                "PayPilot made it so easy to find a skilled freelancer for my project. The AI matching saved me a lot of time, and the PayPal payment process was smooth and secure. Highly recommend!"
-              </p>
-              <div>
-                <span className="font-bold text-white text-[13px]">Amit Verma</span>
-                <span className="text-slate-500 text-[11px] ml-2">Student - Chennai, India</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-3">
-            <div className="flex gap-2 mr-4">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              <div className="w-2 h-2 rounded-full bg-slate-700"></div>
-              <div className="w-2 h-2 rounded-full bg-slate-700"></div>
-            </div>
-            <button className="w-10 h-10 rounded-full border border-slate-700 flex items-center justify-center hover:bg-slate-800 transition-colors">
-              <ChevronLeft className="w-5 h-5 text-slate-400" />
-            </button>
-            <button className="w-10 h-10 rounded-full border border-slate-700 flex items-center justify-center hover:bg-slate-800 transition-colors">
-              <ChevronRight className="w-5 h-5 text-slate-400" />
-            </button>
-          </div>
-        </div>
-      </section>
+      {/* Testimonial Auto-Carousel */}
+      <TestimonialCarousel />
 
       {/* CTA Banner */}
       <section className="relative z-20 px-10 py-10 max-w-[1400px] mx-auto mb-20">
