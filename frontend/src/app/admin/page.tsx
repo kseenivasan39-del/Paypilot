@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   ShieldCheck, AlertTriangle, Users, DollarSign, CheckCircle2, 
   ExternalLink, ArrowUpRight, Lock, RefreshCw, X, Check, Search, Filter,
   FileText, Activity, ShieldAlert, Cpu, Database, Eye, Terminal,
-  Zap, ArrowRight, UserCheck, Key, Shield
+  Zap, ArrowRight, UserCheck, Key, Shield, Download, Power, Sliders,
+  PlusCircle, TrendingUp, HelpCircle
 } from "lucide-react";
 import Link from "next/link";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -52,6 +53,17 @@ interface AuditLogItem {
 function AdminDashboardContent() {
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab") || "overview";
+
+  // Feature 1: Emergency Protocol Kill-Switch State
+  const [killSwitchActive, setKillSwitchActive] = useState<boolean>(false);
+  const [showKillSwitchConfirm, setShowKillSwitchConfirm] = useState<boolean>(false);
+
+  // Feature 5: Gemini AI Verification Threshold Slider
+  const [aiThreshold, setAiThreshold] = useState<number>(85);
+
+  // Feature 3: Global Filter & Search
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "LOCKED_IN_ESCROW" | "RELEASED" | "DISPUTED">("ALL");
 
   const [stats, setStats] = useState<PlatformStats>({
     totalUsers: 142,
@@ -149,8 +161,126 @@ function AdminDashboardContent() {
   const [selectedDispute, setSelectedDispute] = useState<EscrowContract | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
+  // Feature 7: Live Escrow Simulation & Sandbox Injector
+  const handleSimulateMockContract = () => {
+    const mockId = `CON-${Math.floor(104 + Math.random() * 900)}`;
+    const mockAmounts = [4200, 7500, 12000, 18500];
+    const pickedAmount = mockAmounts[Math.floor(Math.random() * mockAmounts.length)];
+    const mockTitles = [
+      "Next.js E-Commerce Mobile App MVP",
+      "FastAPI PayPal Webhook Microservice",
+      "LangChain Agent Deliverable Evaluation",
+      "Smart Contract Solidity Security Audit"
+    ];
+    const pickedTitle = mockTitles[Math.floor(Math.random() * mockTitles.length)];
+    const mockFreelancers = ["Vikram Rathore", "Pooja Sharma", "Deepak Nair", "Kavita Sen"];
+    const pickedFreelancer = mockFreelancers[Math.floor(Math.random() * mockFreelancers.length)];
+
+    const newContract: EscrowContract = {
+      id: mockId,
+      projectTitle: pickedTitle,
+      client: "Sarah Johnson",
+      freelancer: pickedFreelancer,
+      amount: pickedAmount,
+      currency: "INR",
+      paypalOrderId: `${Math.floor(10 + Math.random() * 89)}P${Math.floor(100000 + Math.random() * 900000)}B`,
+      paypalCaptureId: `CAP-${Math.floor(100000 + Math.random() * 900000)}`,
+      status: "LOCKED_IN_ESCROW",
+      aiVerificationScore: Math.floor(88 + Math.random() * 11),
+      date: "Just now"
+    };
+
+    setContracts(prev => [newContract, ...prev]);
+    setStats(prev => ({
+      ...prev,
+      totalVolumeINR: prev.totalVolumeINR + pickedAmount,
+      escrowLockedINR: prev.escrowLockedINR + pickedAmount,
+      activeContracts: prev.activeContracts + 1
+    }));
+
+    const logEntry: AuditLogItem = {
+      id: Date.now(),
+      event: "SANDBOX_SIMULATION_INJECTED",
+      user: "admin@paypilot.demo",
+      ip: "127.0.0.1",
+      time: "Just now",
+      status: "SUCCESS",
+      details: `Simulated PayPal Order capture for ${mockId} (₹${pickedAmount.toLocaleString()}) funded into vault.`
+    };
+    setAuditLogs(prev => [logEntry, ...prev]);
+
+    setActionSuccess(`Mock Contract ${mockId} (₹${pickedAmount.toLocaleString()} INR) successfully injected into PayPal Sandbox Escrow.`);
+    setTimeout(() => setActionSuccess(null), 4000);
+  };
+
+  // Feature 4: 1-Click CSV Export & GST Reconciliation
+  const handleExportCSV = () => {
+    const headers = ["Contract ID", "Project Title", "Client", "Freelancer", "Amount (INR)", "PayPal Order ID", "AI Score (%)", "Escrow Status", "Platform Fee 3% (INR)", "GST 18% on Fee (INR)", "Date"];
+    const rows = contracts.map(c => {
+      const platformFee = Math.round(c.amount * 0.03);
+      const gst = Math.round(platformFee * 0.18);
+      return [
+        c.id,
+        `"${c.projectTitle.replace(/"/g, '""')}"`,
+        `"${c.client}"`,
+        `"${c.freelancer}"`,
+        c.amount,
+        c.paypalOrderId,
+        c.aiVerificationScore,
+        c.status,
+        platformFee,
+        gst,
+        `"${c.date}"`
+      ];
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `paypilot_settlement_ledger_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setActionSuccess("Settlement ledger & GST tax reconciliation export downloaded successfully as CSV.");
+    setTimeout(() => setActionSuccess(null), 3500);
+  };
+
+  // Toggle Kill Switch
+  const toggleKillSwitch = () => {
+    const nextState = !killSwitchActive;
+    setKillSwitchActive(nextState);
+    setShowKillSwitchConfirm(false);
+
+    const logEntry: AuditLogItem = {
+      id: Date.now(),
+      event: nextState ? "PROTOCOL_EMERGENCY_HALT" : "PROTOCOL_RESUMED",
+      user: "admin@paypilot.demo",
+      ip: "127.0.0.1",
+      time: "Just now",
+      status: nextState ? "CRITICAL" : "SUCCESS",
+      details: nextState 
+        ? "EMERGENCY HALT ACTIVATED: All automated PayPal releases and escrow disbursements are globally frozen."
+        : "Emergency protocol lock lifted. Normal escrow disbursements restored."
+    };
+    setAuditLogs(prev => [logEntry, ...prev]);
+
+    setActionSuccess(
+      nextState 
+        ? "⚠️ Emergency Protocol Kill-Switch ACTIVATED. All PayPal releases are frozen."
+        : "✅ Protocol resumed. PayPal Escrow releases operational."
+    );
+    setTimeout(() => setActionSuccess(null), 4000);
+  };
+
   const handleResolveDispute = (decision: "RELEASE_TO_FREELANCER" | "REFUND_TO_CLIENT") => {
     if (!selectedDispute) return;
+
+    if (killSwitchActive) {
+      alert("Cannot execute releases: Emergency Protocol Kill-Switch is currently ACTIVE. Deactivate the kill-switch first.");
+      return;
+    }
 
     setContracts((prev) =>
       prev.map((c) =>
@@ -191,6 +321,19 @@ function AdminDashboardContent() {
     }, 2500);
   };
 
+  // Filtered Contracts
+  const filteredContracts = contracts.filter((c) => {
+    const matchesSearch = 
+      c.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.projectTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.freelancer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.paypalOrderId.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === "ALL" || c.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800 font-sans selection:bg-blue-600 selection:text-white">
       {/* LEFT SIDE: Deep Blue Navigation Sidebar */}
@@ -199,7 +342,7 @@ function AdminDashboardContent() {
       {/* RIGHT SIDE: Crisp White / Light Workspace */}
       <main className="flex-1 p-8 max-w-[1600px] flex flex-col bg-[#F8FAFC]">
         {/* Top Header */}
-        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 border-b border-slate-200/80 pb-6">
+        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 border-b border-slate-200/80 pb-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-[11px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200 flex items-center gap-1.5">
@@ -216,18 +359,64 @@ function AdminDashboardContent() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>All Systems Operational</span>
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Feature 1: Emergency Kill Switch Button */}
+            <button
+              onClick={() => setShowKillSwitchConfirm(true)}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shadow-sm ${
+                killSwitchActive
+                  ? "bg-red-600 text-white animate-pulse border border-red-700"
+                  : "bg-white border border-slate-300 text-slate-700 hover:border-red-400 hover:text-red-600"
+              }`}
+            >
+              <Power className={`w-3.5 h-3.5 ${killSwitchActive ? "text-white" : "text-red-500"}`} />
+              <span>{killSwitchActive ? "EMERGENCY HALT ACTIVE" : "Emergency Kill-Switch"}</span>
+            </button>
+
+            {/* Feature 7: Simulate Mock Contract Action */}
+            <button
+              onClick={handleSimulateMockContract}
+              className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm shadow-blue-500/20 transition-all"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>Inject Mock Escrow</span>
+            </button>
+
+            {/* Feature 4: CSV Export */}
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold shadow-sm transition-all"
+            >
+              <Download className="w-3.5 h-3.5 text-blue-600" />
+              <span>Export Ledger (CSV)</span>
+            </button>
+
             <NotificationBell />
             <UserProfileMenu fallbackName="PayPilot Admin" fallbackRole="Admin" />
           </div>
         </header>
 
+        {/* Kill Switch Alert Banner if Active */}
+        {killSwitchActive && (
+          <div className="mb-6 p-4 rounded-2xl bg-red-600 text-white text-xs font-bold flex items-center justify-between shadow-lg shadow-red-500/20 animate-in fade-in">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-200 shrink-0" />
+              <div>
+                <span className="block text-sm font-black">EMERGENCY PROTOCOL FREEZE ACTIVE</span>
+                <span className="font-medium text-red-100">All automated releases, PayPal capture callbacks, and disbursements are paused globally.</span>
+              </div>
+            </div>
+            <button
+              onClick={toggleKillSwitch}
+              className="px-4 py-1.5 bg-white text-red-700 font-black rounded-xl hover:bg-red-50 text-xs transition-colors shrink-0"
+            >
+              Deactivate Freeze
+            </button>
+          </div>
+        )}
+
         {/* Action Success Toast Banner */}
-        {actionSuccess && (
+        {actionSuccess && !killSwitchActive && (
           <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-3 shadow-sm animate-in fade-in">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             <span>{actionSuccess}</span>
@@ -281,20 +470,179 @@ function AdminDashboardContent() {
           </div>
         </div>
 
-        {/* Tab 1: Escrow Contracts & Disputes */}
+        {/* Feature 2 & 5: Interactive Volume Chart & AI Threshold Tuner Bar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Feature 2: Escrow Volume Visualizer & Velocity */}
+          <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                  Escrow Volume & Liquidity Velocity
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">30-day cumulative settlement volume vs. active locked escrow</p>
+              </div>
+              <span className="px-3 py-1 rounded-xl bg-blue-50 text-blue-700 text-xs font-black border border-blue-200">
+                Avg Settlement: 3.2 Days
+              </span>
+            </div>
+
+            {/* Custom SVG Area Sparkline Chart */}
+            <div className="h-44 w-full relative pt-2">
+              <svg viewBox="0 0 500 120" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2563EB" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#2563EB" stopOpacity="0.0" />
+                  </linearGradient>
+                  <linearGradient id="escGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+                {/* Gridlines */}
+                <line x1="0" y1="20" x2="500" y2="20" stroke="#F1F5F9" strokeWidth="1" />
+                <line x1="0" y1="60" x2="500" y2="60" stroke="#F1F5F9" strokeWidth="1" />
+                <line x1="0" y1="100" x2="500" y2="100" stroke="#F1F5F9" strokeWidth="1" />
+                
+                {/* Volume Area */}
+                <path
+                  d="M 0 100 Q 80 85 140 70 T 260 50 T 380 35 T 500 15 L 500 120 L 0 120 Z"
+                  fill="url(#volGrad)"
+                />
+                <path
+                  d="M 0 100 Q 80 85 140 70 T 260 50 T 380 35 T 500 15"
+                  fill="none"
+                  stroke="#2563EB"
+                  strokeWidth="3"
+                />
+
+                {/* Escrow Locked Line */}
+                <path
+                  d="M 0 110 Q 90 100 160 92 T 280 80 T 400 70 T 500 62 L 500 120 L 0 120 Z"
+                  fill="url(#escGrad)"
+                />
+                <path
+                  d="M 0 110 Q 90 100 160 92 T 280 80 T 400 70 T 500 62"
+                  fill="none"
+                  stroke="#06B6D4"
+                  strokeWidth="2.5"
+                  strokeDasharray="4 4"
+                />
+
+                {/* Data Points */}
+                <circle cx="260" cy="50" r="4" fill="#2563EB" />
+                <circle cx="500" cy="15" r="4" fill="#2563EB" />
+                <circle cx="500" cy="62" r="4" fill="#06B6D4" />
+              </svg>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold border-t border-slate-100 pt-3 mt-1">
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block"></span>
+                  Gross Settled GMV (₹245k)
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block"></span>
+                  Locked Escrow (₹42.5k)
+                </span>
+              </div>
+              <span className="text-slate-400 font-mono">Updated 1 min ago</span>
+            </div>
+          </div>
+
+          {/* Feature 5: Gemini AI Threshold Controller */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                  Gemini AI Quality Guard
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200">
+                  {aiThreshold}% Minimum
+                </span>
+              </div>
+              <h4 className="text-sm font-black text-slate-900 mt-1">Autonomous Release Threshold</h4>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Deliverables meeting or exceeding this confidence score pass automatically. Scores below are flagged for human arbitration.
+              </p>
+            </div>
+
+            <div className="my-4 space-y-3">
+              <input
+                type="range"
+                min="70"
+                max="98"
+                step="1"
+                value={aiThreshold}
+                onChange={(e) => setAiThreshold(Number(e.target.value))}
+                className="w-full accent-blue-600 h-2 bg-slate-100 rounded-lg cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
+                <span>70% (Permissive)</span>
+                <span className="text-blue-600 font-extrabold">{aiThreshold}% (Current)</span>
+                <span>98% (Strict)</span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-2xl text-[11px] text-blue-900 font-medium">
+              Contracts below <strong>{aiThreshold}%</strong> will require dual administrator signatures before PayPal release.
+            </div>
+          </div>
+        </div>
+
+        {/* Feature 3: Escrow Contracts & Settlement Ledger with Search & Filter */}
         <div className="space-y-6">
           <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm">
-            <div className="p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+            <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-black text-slate-900">Live Escrow Contracts & Settlement Ledger</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Surveillance ledger of active, disputed, and released PayPal transactions.
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">
-                  {contracts.length} active escrows
-                </span>
+
+              {/* Search & Filter Controls */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search by ID, client, or PayPal order..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-64"
+                  />
+                </div>
+
+                <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600">
+                  <button
+                    onClick={() => setStatusFilter("ALL")}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === "ALL" ? "bg-white text-slate-900 shadow-xs" : "hover:text-slate-900"}`}
+                  >
+                    All ({contracts.length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("LOCKED_IN_ESCROW")}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === "LOCKED_IN_ESCROW" ? "bg-white text-blue-700 shadow-xs" : "hover:text-slate-900"}`}
+                  >
+                    Locked
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("DISPUTED")}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === "DISPUTED" ? "bg-white text-red-600 shadow-xs" : "hover:text-slate-900"}`}
+                  >
+                    Disputed
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("RELEASED")}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === "RELEASED" ? "bg-white text-emerald-700 shadow-xs" : "hover:text-slate-900"}`}
+                  >
+                    Released
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -313,51 +661,59 @@ function AdminDashboardContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {contracts.map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-6">
-                        <span className="font-bold text-slate-900 block">{c.projectTitle}</span>
-                        <span className="font-mono text-[10px] text-slate-400">{c.id} • {c.date}</span>
-                      </td>
-                      <td className="py-4 px-4 font-semibold text-slate-700">{c.client}</td>
-                      <td className="py-4 px-4 font-semibold text-slate-700">{c.freelancer}</td>
-                      <td className="py-4 px-4 font-black text-slate-900">₹{c.amount.toLocaleString()}</td>
-                      <td className="py-4 px-4 font-mono text-[11px] text-slate-600">{c.paypalOrderId}</td>
-                      <td className="py-4 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                          c.aiVerificationScore >= 90 
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
-                        }`}>
-                          {c.aiVerificationScore}%
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                          c.status === "RELEASED"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : c.status === "DISPUTED"
-                            ? "bg-red-100 text-red-800 animate-pulse"
-                            : "bg-blue-100 text-blue-800"
-                        }`}>
-                          {c.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-right">
-                        {c.status === "DISPUTED" ? (
-                          <button
-                            type="button"
-                            onClick={() => setSelectedDispute(c)}
-                            className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md shadow-red-500/20 transition-all cursor-pointer"
-                          >
-                            Arbitrate Dispute
-                          </button>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 font-mono">Reconciled ✓</span>
-                        )}
+                  {filteredContracts.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-xs text-slate-400">
+                        No contracts match your search filter.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredContracts.map((c) => (
+                      <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="py-4 px-6">
+                          <span className="font-bold text-slate-900 block">{c.projectTitle}</span>
+                          <span className="font-mono text-[10px] text-slate-400">{c.id} • {c.date}</span>
+                        </td>
+                        <td className="py-4 px-4 font-semibold text-slate-700">{c.client}</td>
+                        <td className="py-4 px-4 font-semibold text-slate-700">{c.freelancer}</td>
+                        <td className="py-4 px-4 font-black text-slate-900">₹{c.amount.toLocaleString()}</td>
+                        <td className="py-4 px-4 font-mono text-[11px] text-slate-600">{c.paypalOrderId}</td>
+                        <td className="py-4 px-4">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                            c.aiVerificationScore >= aiThreshold 
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                          }`}>
+                            {c.aiVerificationScore}%
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            c.status === "RELEASED"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : c.status === "DISPUTED"
+                              ? "bg-red-100 text-red-800 animate-pulse"
+                              : "bg-blue-100 text-blue-800"
+                          }`}>
+                            {c.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          {c.status === "DISPUTED" ? (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedDispute(c)}
+                              className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md shadow-red-500/20 transition-all cursor-pointer"
+                            >
+                              Arbitrate Dispute
+                            </button>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 font-mono">Reconciled ✓</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -373,7 +729,7 @@ function AdminDashboardContent() {
               <span className="text-xs text-slate-400 font-mono">Real-Time Event Stream</span>
             </div>
 
-            <div className="space-y-3 font-mono text-xs">
+            <div className="space-y-3 font-mono text-xs max-h-80 overflow-y-auto pr-1">
               {auditLogs.map((log) => (
                 <div 
                   key={log.id}
@@ -383,6 +739,8 @@ function AdminDashboardContent() {
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                       log.status === "SUCCESS" 
                         ? "bg-emerald-100 text-emerald-800 border border-emerald-200" 
+                        : log.status === "CRITICAL"
+                        ? "bg-red-600 text-white font-black"
                         : "bg-amber-100 text-amber-800 border border-amber-200"
                     }`}>
                       {log.event}
@@ -399,6 +757,53 @@ function AdminDashboardContent() {
             </div>
           </div>
         </div>
+
+        {/* Emergency Kill Switch Modal Confirmation */}
+        {showKillSwitchConfirm && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-white rounded-3xl max-w-md w-full border border-red-200 shadow-2xl p-6 space-y-4">
+              <div className="flex items-center gap-3 text-red-600">
+                <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">
+                    {killSwitchActive ? "Deactivate Emergency Halt?" : "Activate Emergency Kill-Switch?"}
+                  </h3>
+                  <p className="text-xs text-slate-500">Requires Protocol Administrator Confirmation</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {killSwitchActive
+                  ? "Deactivating the kill switch will unfreeze all pending PayPal webhooks, restore autonomous milestone verifications, and allow funds disbursement."
+                  : "Activating the kill switch immediately halts all outgoing PayPal escrow payouts, freezes all active contracts, and puts arbitration into manual lockdown."
+                }
+              </p>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowKillSwitchConfirm(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleKillSwitch}
+                  className={`flex-1 py-2.5 text-white font-black text-xs rounded-xl shadow-lg transition-all ${
+                    killSwitchActive 
+                      ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20"
+                      : "bg-red-600 hover:bg-red-700 shadow-red-500/20"
+                  }`}
+                >
+                  {killSwitchActive ? "Restore Protocol" : "CONFIRM EMERGENCY HALT"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Dispute Resolution Modal */}
         {selectedDispute && (
