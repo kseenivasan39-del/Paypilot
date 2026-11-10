@@ -18,7 +18,7 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState<"client" | "freelancer">("client");
+  const [role, setRole] = useState<"client" | "freelancer" | "admin">("client");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -76,6 +76,8 @@ function LoginForm() {
 
         if (targetRole === "freelancer") {
           router.push("/dashboard/freelancer");
+        } else if (targetRole === "admin") {
+          router.push("/admin");
         } else {
           router.push("/dashboard/client");
         }
@@ -93,11 +95,14 @@ function LoginForm() {
     setSuccess("");
     setLoading(true);
     try {
-      await authApi.login(demoEmail, "Password123!");
+      const passwordToUse = demoRole === "admin" ? "AdminPass123!" : "Password123!";
+      await authApi.login(demoEmail, passwordToUse);
       setSuccess(`Signed in as demo ${demoRole}! Teleporting...`);
       setTimeout(() => {
         if (demoRole === "freelancer") {
           router.push("/dashboard/freelancer");
+        } else if (demoRole === "admin") {
+          router.push("/admin");
         } else {
           router.push("/dashboard/client");
         }
