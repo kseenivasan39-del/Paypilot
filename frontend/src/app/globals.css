@@ -36,3 +36,51 @@ input, textarea, [contenteditable="true"] {
   -moz-user-select: text !important;
   -ms-user-select: text !important;
 }
+
+/* ========================================================
+   Clean, Invisible or Ultra-Sleek Scrollbars
+   Removes thick, ugly dual browser scrollbars completely
+   while keeping smooth scrolling fully functional.
+   ======================================================== */
+
+/* Hide default browser scrollbars globally for Chrome, Safari, Edge, Opera */
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.45);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+}
+
+/* Utility to completely hide scrollbars where clean seamless UX is needed */
+.no-scrollbar::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+html,
+body {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;     /* Firefox */
+}
