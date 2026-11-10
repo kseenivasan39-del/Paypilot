@@ -26,7 +26,7 @@ export default function LandingPage() {
             <Link href="/projects/new" className="inline-flex justify-center items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold text-lg hover:from-blue-500 hover:to-cyan-400 shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all group">
               Start a Project <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link href="/dashboard/client" className="inline-flex justify-center items-center px-8 py-4 rounded-full border border-slate-600 text-white font-semibold text-lg hover:bg-slate-800 transition-colors">
+            <Link href="/freelancers" className="inline-flex justify-center items-center px-8 py-4 rounded-full border border-slate-600 text-white font-semibold text-lg hover:bg-slate-800 transition-colors">
               Explore Freelancers
             </Link>
           </div>
