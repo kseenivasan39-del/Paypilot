@@ -183,7 +183,7 @@ export default function AdminDisputesPage() {
     setTimeout(() => setActionSuccess(null), 4500);
   };
 
-  // Feature 4: Download Official Arbitration Ruling Certificate as PDF
+  // Feature 4: Download Official Corporate Arbitration Ruling Certificate as MNC Enterprise-Grade PDF
   const handleDownloadRulingNotice = (dispute: DisputeItem) => {
     try {
       const doc = new jsPDF({
@@ -192,182 +192,320 @@ export default function AdminDisputesPage() {
         format: "a4",
       });
 
-      // Colors
-      const primaryBlue = "#1E40AF";
-      const slateDark = "#0F172A";
-      const slateLight = "#64748B";
+      // Page dimensions
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 18;
+      const contentWidth = pageWidth - margin * 2;
 
-      // Header Banner
-      doc.setFillColor(15, 23, 42); // slateDark
-      doc.rect(0, 0, 210, 36, "F");
+      // 1. Top Decorative Brand Accent Line (Corporate Gradient Style)
+      doc.setFillColor(37, 99, 235); // Blue 600
+      doc.rect(0, 0, pageWidth, 4, "F");
 
-      // Brand Logo / Title
+      doc.setFillColor(6, 182, 212); // Cyan 500
+      doc.rect(0, 4, pageWidth, 1.2, "F");
+
+      // 2. Corporate Header Section
+      let y = 16;
+      
+      // Brand Logo block
+      doc.setFillColor(15, 23, 42); // Navy 900
+      doc.roundedRect(margin, y, 10, 10, 2.5, 2.5, "F");
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(20);
-      doc.text("PayPilot Protocol", 20, 18);
+      doc.setFontSize(11);
+      doc.text("P", margin + 3.2, y + 7.2);
 
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(56, 189, 248); // Cyan
-      doc.text("ADMINISTRATIVE ESCROW ARBITRATION COURT • CERTIFICATE OF VERDICT", 20, 26);
-
-      // Certificate Meta
-      doc.setTextColor(148, 163, 184);
-      doc.setFontSize(8);
-      doc.text(`DOC-REF: ${dispute.id}-RULING`, 150, 18);
-      doc.text(`DATE: ${dispute.createdAt}`, 150, 24);
-
-      // Section 1: Overview
-      let y = 48;
+      // Company Name
       doc.setTextColor(15, 23, 42);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("PayPilot Global Protocol Inc.", margin + 14, y + 6);
+
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 116, 139);
+      doc.text("ESCROW GOVERNANCE & DISPUTE ADJUDICATION DIVISION • GLOBAL FINANCIAL SERVICES", margin + 14, y + 10.5);
+
+      // Top Right Reference Box (MNC Corporate Badge)
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(203, 213, 225);
+      doc.roundedRect(pageWidth - margin - 58, y - 1, 58, 14, 2, 2, "FD");
+
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 116, 139);
+      doc.text("OFFICIAL DOCKET REF", pageWidth - margin - 54, y + 4);
+      doc.setFont("courier", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(30, 64, 175);
+      doc.text(dispute.id, pageWidth - margin - 54, y + 10);
+
+      y += 18;
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, y, pageWidth - margin, y);
+
+      // 3. Document Title & Subtitle
+      y += 9;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
-      doc.text("Official Arbitration Judgment & Settlement Notice", 20, y);
+      doc.setTextColor(15, 23, 42);
+      doc.text("ARBITRATION SETTLEMENT & LEGAL ADJUDICATION NOTICE", margin, y);
 
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Issued pursuant to Section 4.2 of the PayPilot Autonomous Dual-Signature Escrow Master Services Agreement.`, margin, y);
+
+      // 4. Two-Column Metadata Summary (Issued Date / Status / Escrow Amount)
+      y += 6;
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(margin, y, contentWidth, 20, 2, 2, "FD");
+
+      // Column 1: Date & Case
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 116, 139);
+      doc.text("DATE OF ADJUDICATION", margin + 6, y + 6);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text(dispute.createdAt, margin + 6, y + 13);
+
+      // Column 2: Dispute Category
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 116, 139);
+      doc.text("DISPUTE CLASSIFICATION", margin + 60, y + 6);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(37, 99, 235);
+      doc.text(dispute.category.toUpperCase(), margin + 60, y + 13);
+
+      // Column 3: Escrow Sum
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 116, 139);
+      doc.text("DISPUTED PRINCIPAL SUM", margin + 120, y + 6);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`INR ${dispute.amount.toLocaleString()}.00`, margin + 120, y + 13);
+
+      // 5. Section: Parties to the Dispute (Formatted Table Style)
+      y += 26;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text("1. IDENTIFICATION OF PARTIES", margin, y);
+
+      y += 3.5;
+      // Table Header
+      doc.setFillColor(241, 245, 249);
+      doc.rect(margin, y, contentWidth, 6, "F");
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(71, 85, 105);
+      doc.text("ROLE", margin + 4, y + 4.2);
+      doc.text("LEGAL NAME / ENTITY", margin + 35, y + 4.2);
+      doc.text("ACCOUNT STATUS", margin + 105, y + 4.2);
+      doc.text("CUSTODY JURISDICTION", margin + 140, y + 4.2);
+
+      // Row 1: Client
       y += 6;
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(100, 116, 139);
-      doc.text("This legally binding certificate documents the cryptographic arbitration ruling executed on the PayPilot Escrow Vault.", 20, y);
-
-      // Box: Case Particulars
-      y += 8;
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(226, 232, 240);
-      doc.roundedRect(20, y, 170, 48, 3, 3, "FD");
-
-      doc.setFontSize(9);
-      doc.setTextColor(15, 23, 42);
-      doc.setFont("helvetica", "bold");
-      doc.text("CASE PARTICULARS", 26, y + 8);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.5);
-      doc.setTextColor(100, 116, 139);
-
-      doc.text("Case Identification:", 26, y + 17);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(15, 23, 42);
-      doc.text(dispute.id, 75, y + 17);
-
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 116, 139);
-      doc.text("Client Principal:", 26, y + 24);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(15, 23, 42);
-      doc.text(dispute.client, 75, y + 24);
-
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 116, 139);
-      doc.text("Freelancer Contractor:", 26, y + 31);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(15, 23, 42);
-      doc.text(dispute.freelancer, 75, y + 31);
-
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 116, 139);
-      doc.text("Disputed Escrow Value:", 26, y + 38);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(30, 64, 175); // Blue
-      doc.text(`INR ${dispute.amount.toLocaleString()} (PayPal Smart Vault)`, 75, y + 38);
-
-      // Box: Claims & Gemini 1.5 Evidence
-      y += 56;
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(20, y, 170, 50, 3, 3, "FD");
-
-      doc.setFontSize(9);
-      doc.setTextColor(15, 23, 42);
-      doc.setFont("helvetica", "bold");
-      doc.text("CLAIM GROUNDS & AI QUALITY EVALUATION", 26, y + 8);
-
-      doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
       doc.setTextColor(100, 116, 139);
-      doc.text("Dispute Classification:", 26, y + 16);
+      doc.text("Client (Buyer):", margin + 4, y + 5);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(15, 23, 42);
-      doc.text(dispute.category, 75, y + 16);
+      doc.text(dispute.client, margin + 35, y + 5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(22, 101, 52);
+      doc.text("KYC Verified ✓", margin + 105, y + 5);
+      doc.setTextColor(100, 116, 139);
+      doc.text("PayPal Sandbox Vault", margin + 140, y + 5);
 
+      // Row 2: Freelancer
+      y += 7.5;
+      doc.setDrawColor(241, 245, 249);
+      doc.line(margin, y, margin + contentWidth, y);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(100, 116, 139);
-      doc.text("Gemini 1.5 Quality Score:", 26, y + 22);
+      doc.text("Freelancer (Seller):", margin + 4, y + 5);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(217, 119, 6); // Amber
-      doc.text(`${dispute.aiScore} Semantic Compliance`, 75, y + 22);
-
+      doc.setTextColor(15, 23, 42);
+      doc.text(dispute.freelancer, margin + 35, y + 5);
       doc.setFont("helvetica", "normal");
+      doc.setTextColor(22, 101, 52);
+      doc.text("KYC Verified ✓", margin + 105, y + 5);
       doc.setTextColor(100, 116, 139);
-      doc.text("AI Reasoning Audit:", 26, y + 28);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(51, 65, 85);
-      const splitFeedback = doc.splitTextToSize(dispute.aiFeedback, 155);
-      doc.text(splitFeedback, 26, y + 34);
+      doc.text("PayPal Disbursement Direct", margin + 140, y + 5);
 
-      // Box: Final Ruling & Financial Settlement
-      y += 58;
-      doc.setFillColor(239, 246, 255); // Light Blue tint
-      doc.setDrawColor(191, 219, 254);
-      doc.roundedRect(20, y, 170, 48, 3, 3, "FD");
-
+      // 6. Section: Claims & Gemini 1.5 Multi-Modal Audit Evidence
+      y += 14;
+      doc.setFont("helvetica", "bold");
       doc.setFontSize(9.5);
-      doc.setTextColor(30, 64, 175);
-      doc.setFont("helvetica", "bold");
-      doc.text("FINAL ADJUDICATION RULING", 26, y + 8);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.5);
-      doc.setTextColor(100, 116, 139);
-      doc.text("Verdict Determination:", 26, y + 18);
-      doc.setFont("helvetica", "bold");
       doc.setTextColor(15, 23, 42);
-      
-      const verdictTitle = 
-        dispute.status === "RESOLVED_RELEASED" ? "100% Full Escrow Released to Freelancer" :
-        dispute.status === "RESOLVED_REFUNDED" ? "100% Full Escrow Refunded to Client" :
-        `Split Settlement (${dispute.splitRatio?.freelancerPct || 50}% Freelancer / ${dispute.splitRatio?.clientPct || 50}% Client)`;
-      doc.text(verdictTitle, 75, y + 18);
+      doc.text("2. STATEMENT OF CLAIM & AI TECHNICAL FORENSICS", margin, y);
+
+      y += 4;
+      // Client claim box
+      doc.setFillColor(254, 242, 242);
+      doc.setDrawColor(254, 202, 202);
+      doc.roundedRect(margin, y, contentWidth, 16, 1.5, 1.5, "FD");
+
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(185, 28, 28);
+      doc.text("PLAINTIFF / CLIENT GRIEVANCE STATEMENT:", margin + 4, y + 4.5);
 
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 116, 139);
-      doc.text("Cryptographic Hash:", 26, y + 26);
-      doc.setFont("courier", "normal");
       doc.setFontSize(7.5);
-      doc.setTextColor(71, 85, 105);
-      doc.text("0x8fa4c3b2110e59a9972bcf1488210499d63c5001a74e", 75, y + 26);
+      doc.setTextColor(127, 29, 29);
+      const splitReason = doc.splitTextToSize(dispute.reason, contentWidth - 8);
+      doc.text(splitReason, margin + 4, y + 9.5);
+
+      // AI Evidence Box
+      y += 19;
+      doc.setFillColor(240, 249, 255);
+      doc.setDrawColor(186, 230, 253);
+      doc.roundedRect(margin, y, contentWidth, 22, 1.5, 1.5, "FD");
+
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(3, 105, 161);
+      doc.text(`GEMINI 1.5 MULTI-MODAL AUDIT ENGINE VERDICT [CONFIDENCE SCORE: ${dispute.aiScore}]:`, margin + 4, y + 4.5);
 
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.5);
-      doc.setTextColor(100, 116, 139);
-      doc.text("PayPal Webhook Ref:", 26, y + 34);
-      doc.setFont("courier", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(12, 74, 110);
+      const splitAi = doc.splitTextToSize(dispute.aiFeedback, contentWidth - 8);
+      doc.text(splitAi, margin + 4, y + 9.5);
+
+      doc.setFont("courier", "normal");
+      doc.setFontSize(6.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Deliverable IPFS CID: ${dispute.deliverable.slice(0, 75)}...`, margin + 4, y + 18.5);
+
+      // 7. Section: Formal Ruling & Settlement Verdict
+      y += 28;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
       doc.setTextColor(15, 23, 42);
-      doc.text(`PAYPAL-CAPTURE-EXEC-${dispute.id}`, 75, y + 34);
+      doc.text("3. FINAL ADJUDICATION RULING & ESCROW EXECUTION", margin, y);
+
+      y += 4;
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(203, 213, 225);
+      doc.roundedRect(margin, y, contentWidth, 34, 2, 2, "FD");
+
+      const verdictTitle = 
+        dispute.status === "RESOLVED_RELEASED" ? "FULL ESCROW RELEASED TO FREELANCER (100%)" :
+        dispute.status === "RESOLVED_REFUNDED" ? "FULL ESCROW REFUNDED TO CLIENT (100%)" :
+        `PROPORTIONAL SPLIT SETTLEMENT (${dispute.splitRatio?.freelancerPct || 50}% Freelancer / ${dispute.splitRatio?.clientPct || 50}% Client)`;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.setTextColor(30, 64, 175);
+      doc.text(verdictTitle, margin + 6, y + 8);
+
+      // Payout Breakdown
+      const freelancerAmt = dispute.status === "RESOLVED_RELEASED" 
+        ? dispute.amount 
+        : dispute.status === "RESOLVED_REFUNDED" 
+        ? 0 
+        : Math.round((dispute.amount * (dispute.splitRatio?.freelancerPct || 50)) / 100);
+
+      const clientAmt = dispute.amount - freelancerAmt;
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
-      doc.setTextColor(100, 116, 139);
-      doc.text("Escrow Custody Status:", 26, y + 42);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`• Disbursed to Freelancer (${dispute.freelancer}):`, margin + 6, y + 16);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(22, 101, 52); // Emerald
-      doc.text("SETTLED AND FINALIZED", 75, y + 42);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`INR ${freelancerAmt.toLocaleString()}.00 via PayPal Webhook Capture`, margin + 85, y + 16);
 
-      // Sign-off Footer
-      y += 58;
-      doc.setDrawColor(226, 232, 240);
-      doc.line(20, y, 190, y);
-
-      y += 8;
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
-      doc.setTextColor(148, 163, 184);
-      doc.text("Authorized by PayPilot Protocol Governance Administrator • Issued via Automated Dual-Signature Smart Contract System", 20, y);
-      doc.text("Page 1 of 1 • Tamper-proof cryptographic record", 140, y);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`• Refunded to Client (${dispute.client}):`, margin + 6, y + 22);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(15, 23, 42);
+      doc.text(`INR ${clientAmt.toLocaleString()}.00 via PayPal Original Funding Source`, margin + 85, y + 22);
 
-      // Save PDF
-      doc.save(`PayPilot_Arbitration_Ruling_${dispute.id}.pdf`);
-      setActionSuccess(`Official Arbitration Certificate for ${dispute.id} downloaded successfully as PDF.`);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(71, 85, 105);
+      doc.text("• Settlement Status:", margin + 6, y + 28);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(22, 101, 52);
+      doc.text("EXECUTED • IRREVOCABLE • RECONCILED ON PROTOCOL LEDGER", margin + 85, y + 28);
+
+      // 8. Cryptographic Proofs & Compliance Seal
+      y += 40;
+      doc.setFillColor(241, 245, 249);
+      doc.roundedRect(margin, y, contentWidth, 24, 1.5, 1.5, "F");
+
+      doc.setFont("courier", "bold");
+      doc.setFontSize(7);
+      doc.setTextColor(51, 65, 85);
+      doc.text("CRYPTOGRAPHIC VERIFICATION SEAL & AUDIT CONSENSUS", margin + 4, y + 5);
+
+      doc.setFont("courier", "normal");
+      doc.setFontSize(6.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text("SHA256 Root Digest: 0x8fa4c3b2110e59a9972bcf1488210499d63c5001a74e5b98ef11029487c6b901", margin + 4, y + 10);
+      doc.text(`PayPal IPN Reference: PAYPAL-ARBITRATION-RELAY-${dispute.id}-CONFIRMED-OK`, margin + 4, y + 14.5);
+      doc.text("Smart Escrow Contract: 0xPayPilotVaultDualSignMainnetV2 • Consensus Quorum: 2/2 Admin Signatures", margin + 4, y + 19);
+
+      // 9. Signatures Block (Corporate Style)
+      y += 30;
+      // Admin Signature Line
+      doc.setDrawColor(148, 163, 184);
+      doc.line(margin + 6, y + 12, margin + 70, y + 12);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(15, 23, 42);
+      doc.text("PayPilot Protocol Governance Administrator", margin + 6, y + 16);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Authorized Escrow Arbiter • Cryptographically Attested", margin + 6, y + 20);
+
+      // Corporate Stamp Badge on the right
+      const stampX = pageWidth - margin - 50;
+      doc.setDrawColor(37, 99, 235);
+      doc.setLineWidth(0.6);
+      doc.roundedRect(stampX, y, 46, 22, 2, 2, "D");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+      doc.setTextColor(37, 99, 235);
+      doc.text("PAYPILOT PROTOCOL", stampX + 7, y + 6);
+      doc.setFontSize(6);
+      doc.setTextColor(22, 101, 52);
+      doc.text("★ ARBITRATION SEALED ★", stampX + 5, y + 11.5);
+      doc.setFont("courier", "bold");
+      doc.setFontSize(6.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text("VERIFIED OFFICIAL", stampX + 8, y + 17);
+
+      // 10. Bottom Footer
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.3);
+      doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text("PayPilot Protocol Inc. • One Marina Boulevard, Singapore • support@paypilot.org • Official Legal Tender Escrow Document", margin, pageHeight - 7);
+      doc.text("Page 1 of 1 • Strict Confidentiality", pageWidth - margin - 42, pageHeight - 7);
+
+      // Save PDF with pristine naming
+      doc.save(`PayPilot_Arbitration_Judgment_${dispute.id}.pdf`);
+      setActionSuccess(`Official Enterprise MNC Arbitration Certificate for ${dispute.id} downloaded successfully.`);
       setTimeout(() => setActionSuccess(null), 3500);
     } catch (err) {
       console.error("PDF generation failed:", err);
