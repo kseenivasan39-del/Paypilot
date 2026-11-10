@@ -484,74 +484,77 @@ export default function AdminEscrowPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs whitespace-nowrap min-w-[950px]">
                 <thead className="bg-slate-50/80 text-slate-500 font-extrabold uppercase tracking-wider text-[11px] border-b border-slate-200/80">
                   <tr>
-                    <th className="py-3.5 px-5">Contract & Project</th>
-                    <th className="py-3.5 px-5">PayPal Order ID</th>
-                    <th className="py-3.5 px-5">Principal Amount</th>
-                    <th className="py-3.5 px-5">Platform Fee</th>
-                    <th className="py-3.5 px-5">Custody State</th>
-                    <th className="py-3.5 px-5">Date Captured</th>
-                    <th className="py-3.5 px-5 text-right">Admin Override</th>
+                    <th className="py-4 px-6 min-w-[240px]">Contract & Project</th>
+                    <th className="py-4 px-5 min-w-[170px]">PayPal Order ID</th>
+                    <th className="py-4 px-5 min-w-[120px]">Principal Amount</th>
+                    <th className="py-4 px-5 min-w-[110px]">Platform Fee</th>
+                    <th className="py-4 px-5 min-w-[160px]">Custody State</th>
+                    <th className="py-4 px-5 min-w-[120px]">Date Captured</th>
+                    <th className="py-4 px-6 text-right min-w-[180px]">Admin Override</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredEscrows.map(escrow => (
                     <tr key={escrow.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-4 px-5">
-                        <span className="font-black text-slate-900">{escrow.id}</span>
-                        <span className="block text-slate-600 font-medium truncate max-w-xs">{escrow.project}</span>
+                      <td className="py-4 px-6">
+                        <span className="font-black text-slate-900 block">{escrow.id}</span>
+                        <span className="text-slate-600 font-medium text-[11px] block truncate max-w-xs">{escrow.project}</span>
                       </td>
                       <td className="py-4 px-5">
-                        <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-700 border border-slate-200">
+                        <span className="font-mono text-xs bg-slate-100 px-2.5 py-1 rounded-md text-slate-700 border border-slate-200 inline-block">
                           {escrow.paypalOrderId}
                         </span>
                       </td>
                       <td className="py-4 px-5 font-black text-slate-900 text-sm">
                         {formatCurrency(escrow.amount)}
                       </td>
-                      <td className="py-4 px-5 font-semibold text-emerald-600">
-                        {formatCurrency(escrow.fee)} (3%)
+                      <td className="py-4 px-5 font-bold text-emerald-600">
+                        {formatCurrency(escrow.fee)} <span className="text-[10px] text-emerald-500 font-semibold">(3%)</span>
                       </td>
                       <td className="py-4 px-5">
                         {escrow.status === "LOCKED_IN_ESCROW" && (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-100 text-blue-700 border border-blue-200">
+                          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                             Locked in Escrow
                           </span>
                         )}
                         {escrow.status === "RELEASED" && (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700 border border-emerald-200">
+                          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
                             Released to Freelancer
                           </span>
                         )}
                         {escrow.status === "DISPUTED" && (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200">
+                          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
                             Frozen (Disputed)
                           </span>
                         )}
                       </td>
-                      <td className="py-4 px-5 text-slate-500 font-semibold">
+                      <td className="py-4 px-5 text-slate-600 font-medium">
                         {escrow.date}
                       </td>
-                      <td className="py-4 px-5 text-right">
+                      <td className="py-4 px-6 text-right">
                         {escrow.status === "LOCKED_IN_ESCROW" ? (
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleForceAction(escrow.id, "RELEASE")}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-xs transition-all cursor-pointer"
+                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer whitespace-nowrap"
                             >
                               Force Release
                             </button>
                             <button
                               onClick={() => handleForceAction(escrow.id, "REFUND")}
-                              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition-all cursor-pointer"
+                              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 transition-all cursor-pointer whitespace-nowrap"
                             >
                               Refund
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[11px] text-slate-400 font-mono">Immutable ✓</span>
+                          <span className="text-xs text-slate-400 font-mono inline-block pr-2">Immutable ✓</span>
                         )}
                       </td>
                     </tr>
