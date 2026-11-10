@@ -667,16 +667,16 @@ export default function AdminDisputesPage() {
           {/* Disputes Table */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs whitespace-nowrap min-w-[1050px]">
                 <thead className="bg-slate-50/80 text-slate-500 font-extrabold uppercase tracking-wider text-[11px] border-b border-slate-200/80">
                   <tr>
-                    <th className="py-3.5 px-5">Case ID & Scope</th>
-                    <th className="py-3.5 px-5">Parties Involved</th>
-                    <th className="py-3.5 px-5">Escrow Amount</th>
-                    <th className="py-3.5 px-5">Dispute Reason</th>
-                    <th className="py-3.5 px-5">AI Score</th>
-                    <th className="py-3.5 px-5">Status</th>
-                    <th className="py-3.5 px-5 text-right">Action</th>
+                    <th className="py-4 px-6 min-w-[200px]">Case ID & Scope</th>
+                    <th className="py-4 px-5 min-w-[200px]">Parties Involved</th>
+                    <th className="py-4 px-5 min-w-[130px]">Escrow Amount</th>
+                    <th className="py-4 px-5 min-w-[240px]">Dispute Reason</th>
+                    <th className="py-4 px-5 min-w-[120px]">AI Score</th>
+                    <th className="py-4 px-5 min-w-[180px]">Status</th>
+                    <th className="py-4 px-6 text-right min-w-[170px]">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -689,13 +689,13 @@ export default function AdminDisputesPage() {
                   ) : (
                     filteredDisputes.map(dispute => (
                       <tr key={dispute.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-4 px-5">
-                          <span className="font-black text-slate-900">{dispute.id}</span>
-                          <span className="block text-[10px] text-blue-600 font-semibold mt-0.5">{dispute.category}</span>
+                        <td className="py-4 px-6">
+                          <span className="font-black text-slate-900 block">{dispute.id}</span>
+                          <span className="inline-block text-[10px] text-blue-600 font-semibold mt-0.5">{dispute.category}</span>
                           <span className="block text-[10px] text-slate-400">{dispute.createdAt}</span>
                         </td>
                         <td className="py-4 px-5">
-                          <div className="space-y-0.5">
+                          <div className="space-y-1">
                             <p className="font-bold text-slate-800"><span className="text-slate-400 font-medium">Client:</span> {dispute.client}</p>
                             <p className="font-bold text-slate-800"><span className="text-slate-400 font-medium">Freelancer:</span> {dispute.freelancer}</p>
                           </div>
@@ -703,13 +703,13 @@ export default function AdminDisputesPage() {
                         <td className="py-4 px-5 font-black text-slate-900 text-sm">
                           ₹{dispute.amount.toLocaleString()}
                         </td>
-                        <td className="py-4 px-5 max-w-xs">
-                          <p className="text-slate-700 font-medium line-clamp-2 leading-relaxed">
+                        <td className="py-4 px-5">
+                          <p className="text-slate-700 font-medium max-w-xs truncate text-[11px]" title={dispute.reason}>
                             {dispute.reason}
                           </p>
                         </td>
                         <td className="py-4 px-5">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black inline-block ${
                             parseInt(dispute.aiScore) >= 85 ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
                             parseInt(dispute.aiScore) >= 70 ? "bg-amber-50 text-amber-700 border border-amber-200" :
                             "bg-red-50 text-red-700 border border-red-200"
@@ -719,27 +719,31 @@ export default function AdminDisputesPage() {
                         </td>
                         <td className="py-4 px-5">
                           {dispute.status === "AWAITING_ARBITRATION" && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200">
+                            <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 inline-flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
                               Awaiting Arbitration
                             </span>
                           )}
                           {dispute.status === "RESOLVED_RELEASED" && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700 border border-emerald-200">
+                            <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
                               Released to Freelancer
                             </span>
                           )}
                           {dispute.status === "RESOLVED_REFUNDED" && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-200">
+                            <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
                               Refunded to Client
                             </span>
                           )}
                           {dispute.status === "RESOLVED_SPLIT" && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-purple-100 text-purple-700 border border-purple-200">
+                            <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200 inline-flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
                               Split Settlement
                             </span>
                           )}
                         </td>
-                        <td className="py-4 px-5 text-right">
+                        <td className="py-4 px-6 text-right">
                           <div className="flex items-center justify-end gap-2">
                             {dispute.status === "AWAITING_ARBITRATION" ? (
                               <button
@@ -747,18 +751,18 @@ export default function AdminDisputesPage() {
                                   setSelectedDispute(dispute);
                                   setActiveModalTab("audit");
                                 }}
-                                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white shadow-xs transition-all cursor-pointer"
+                                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white shadow-xs transition-all cursor-pointer whitespace-nowrap"
                               >
                                 Arbitrate Case
                               </button>
                             ) : (
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => {
                                     setSelectedDispute(dispute);
                                     setActiveModalTab("audit");
                                   }}
-                                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer"
+                                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer whitespace-nowrap"
                                 >
                                   Verdict
                                 </button>
