@@ -68,6 +68,12 @@ export default function UserProfileMenu({
     };
   }, [isOpen]);
 
+  const isAdmin = (user.role?.toLowerCase() === "admin") || (fallbackRole.toLowerCase() === "admin");
+  const profileLink = isAdmin ? "/admin/profile" : "/settings";
+  const accountLink = isAdmin ? "/admin/settings" : "/settings/account";
+  const securityLink = isAdmin ? "/admin/security" : "/settings/security";
+  const paymentsLink = isAdmin ? "/admin/treasury" : "/settings/payments";
+
   const handleSignOut = () => {
     authApi.logout();
     setIsOpen(false);
@@ -115,39 +121,39 @@ export default function UserProfileMenu({
 
           <div className="py-1 space-y-0.5">
             <Link
-              href="/settings"
+              href={profileLink}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <User className="w-4 h-4 text-slate-400" />
-              <span>Profile Information</span>
+              <span>{isAdmin ? "Admin Profile" : "Profile Information"}</span>
             </Link>
 
             <Link
-              href="/settings/account"
+              href={accountLink}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <Settings className="w-4 h-4 text-slate-400" />
-              <span>Account Preferences</span>
+              <span>{isAdmin ? "Governance Preferences" : "Account Preferences"}</span>
             </Link>
 
             <Link
-              href="/settings/security"
+              href={securityLink}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <Shield className="w-4 h-4 text-slate-400" />
-              <span>Security & Sessions</span>
+              <span>{isAdmin ? "Security & Active Sessions" : "Security & Sessions"}</span>
             </Link>
 
             <Link
-              href="/settings/payments"
+              href={paymentsLink}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <CreditCard className="w-4 h-4 text-slate-400" />
-              <span>Payment Methods</span>
+              <span>{isAdmin ? "Treasury & Bank Methods" : "Payment Methods"}</span>
             </Link>
           </div>
 
