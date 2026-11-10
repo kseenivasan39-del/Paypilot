@@ -50,6 +50,16 @@ interface AuditLogItem {
   details: string;
 }
 
+interface ChartPoint {
+  day: string;
+  gmv: number;
+  escrow: number;
+  contracts: number;
+  x: number;
+  yGmv: number;
+  yEscrow: number;
+}
+
 function AdminDashboardContent() {
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab") || "overview";
@@ -65,16 +75,30 @@ function AdminDashboardContent() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "LOCKED_IN_ESCROW" | "RELEASED" | "DISPUTED">("ALL");
 
+  // Interactive Chart Hover State
+  const [hoveredPoint, setHoveredPoint] = useState<ChartPoint | null>(null);
+  const [chartRange, setChartRange] = useState<"30D" | "14D" | "7D">("30D");
+
   const [stats, setStats] = useState<PlatformStats>({
     totalUsers: 142,
     totalClients: 58,
     totalFreelancers: 84,
     activeContracts: 19,
-    totalVolumeINR: 245000,
-    escrowLockedINR: 42500,
+    totalVolumeINR: 263500,
+    escrowLockedINR: 61000,
     disputesActive: 1,
     aiVerificationsPassed: 38
   });
+
+  const chartData: ChartPoint[] = [
+    { day: "Oct 12", gmv: 95000, escrow: 18000, contracts: 8, x: 20, yGmv: 105, yEscrow: 112 },
+    { day: "Oct 17", gmv: 125000, escrow: 24000, contracts: 11, x: 100, yGmv: 90, yEscrow: 102 },
+    { day: "Oct 22", gmv: 160000, escrow: 32000, contracts: 13, x: 180, yGmv: 74, yEscrow: 92 },
+    { day: "Oct 27", gmv: 195000, escrow: 41000, contracts: 15, x: 260, yGmv: 58, yEscrow: 80 },
+    { day: "Nov 01", gmv: 220000, escrow: 48000, contracts: 17, x: 340, yGmv: 45, yEscrow: 73 },
+    { day: "Nov 06", gmv: 245000, escrow: 54000, contracts: 19, x: 420, yGmv: 30, yEscrow: 68 },
+    { day: "Nov 10", gmv: stats.totalVolumeINR, escrow: stats.escrowLockedINR, contracts: 22, x: 480, yGmv: 16, yEscrow: 60 }
+  ];
 
   const [contracts, setContracts] = useState<EscrowContract[]>([
     {
@@ -161,7 +185,7 @@ function AdminDashboardContent() {
   const [selectedDispute, setSelectedDispute] = useState<EscrowContract | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  // Feature 7: Live Escrow Simulation & Sandbox Injector
+  // Mock contract injector
   const handleSimulateMockContract = () => {
     const mockId = `CON-${Math.floor(104 + Math.random() * 900)}`;
     const mockAmounts = [4200, 7500, 12000, 18500];
@@ -213,7 +237,7 @@ function AdminDashboardContent() {
     setTimeout(() => setActionSuccess(null), 4000);
   };
 
-  // Feature 4: 1-Click CSV Export & GST Reconciliation
+  // CSV Export
   const handleExportCSV = () => {
     const headers = ["Contract ID", "Project Title", "Client", "Freelancer", "Amount (INR)", "PayPal Order ID", "AI Score (%)", "Escrow Status", "Platform Fee 3% (INR)", "GST 18% on Fee (INR)", "Date"];
     const rows = contracts.map(c => {
@@ -341,8 +365,8 @@ function AdminDashboardContent() {
 
       {/* RIGHT SIDE: Crisp White / Light Workspace */}
       <main className="flex-1 p-8 max-w-[1600px] flex flex-col bg-[#F8FAFC]">
-        {/* Top Header */}
-        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 border-b border-slate-200/80 pb-6">
+        {/* Top Header with Profile Pin on Extreme Top Right */}
+        <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8 border-b border-slate-200/80 pb-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-[11px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200 flex items-center gap-1.5">
@@ -359,40 +383,49 @@ function AdminDashboardContent() {
             </p>
           </div>
 
+          {/* Action Tools & Top Right Profile Suite */}
           <div className="flex flex-wrap items-center gap-3">
-            {/* Feature 1: Emergency Kill Switch Button */}
-            <button
-              onClick={() => setShowKillSwitchConfirm(true)}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shadow-sm ${
-                killSwitchActive
-                  ? "bg-red-600 text-white animate-pulse border border-red-700"
-                  : "bg-white border border-slate-300 text-slate-700 hover:border-red-400 hover:text-red-600"
-              }`}
-            >
-              <Power className={`w-3.5 h-3.5 ${killSwitchActive ? "text-white" : "text-red-500"}`} />
-              <span>{killSwitchActive ? "EMERGENCY HALT ACTIVE" : "Emergency Kill-Switch"}</span>
-            </button>
+            {/* Action Bar Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowKillSwitchConfirm(true)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-xs ${
+                  killSwitchActive
+                    ? "bg-red-600 text-white animate-pulse border border-red-700"
+                    : "bg-white border border-slate-300 text-slate-700 hover:border-red-400 hover:text-red-600"
+                }`}
+              >
+                <Power className={`w-3.5 h-3.5 ${killSwitchActive ? "text-white" : "text-red-500"}`} />
+                <span>{killSwitchActive ? "EMERGENCY HALT" : "Emergency Kill-Switch"}</span>
+              </button>
 
-            {/* Feature 7: Simulate Mock Contract Action */}
-            <button
-              onClick={handleSimulateMockContract}
-              className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm shadow-blue-500/20 transition-all"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>Inject Mock Escrow</span>
-            </button>
+              <button
+                onClick={handleSimulateMockContract}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs shadow-blue-500/20 transition-all"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>Inject Mock Escrow</span>
+              </button>
 
-            {/* Feature 4: CSV Export */}
-            <button
-              onClick={handleExportCSV}
-              className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold shadow-sm transition-all"
-            >
-              <Download className="w-3.5 h-3.5 text-blue-600" />
-              <span>Export Ledger (CSV)</span>
-            </button>
+              <button
+                onClick={handleExportCSV}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold shadow-xs transition-all"
+              >
+                <Download className="w-3.5 h-3.5 text-blue-600" />
+                <span>Export Ledger (CSV)</span>
+              </button>
+            </div>
 
-            <NotificationBell />
-            <UserProfileMenu fallbackName="PayPilot Admin" fallbackRole="Admin" />
+            {/* Separator */}
+            <div className="hidden sm:block h-6 w-px bg-slate-200" />
+
+            {/* Notifications & Top-Right Profile Pill */}
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <div className="pl-1">
+                <UserProfileMenu fallbackName="PayPilot Admin" fallbackRole="Admin" />
+              </div>
+            </div>
           </div>
         </header>
 
@@ -470,48 +503,112 @@ function AdminDashboardContent() {
           </div>
         </div>
 
-        {/* Feature 2 & 5: Interactive Volume Chart & AI Threshold Tuner Bar */}
+        {/* Interactive Volume Chart & AI Threshold Tuner Bar */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Feature 2: Escrow Volume Visualizer & Velocity */}
-          <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
+          {/* Feature 2: Interactive Escrow Volume Visualizer with Tooltips & Range Filter */}
+          <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm relative">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
                 <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-blue-600" />
                   Escrow Volume & Liquidity Velocity
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">30-day cumulative settlement volume vs. active locked escrow</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Hover over data points to inspect escrow values, contracts, and settlement velocity
+                </p>
               </div>
-              <span className="px-3 py-1 rounded-xl bg-blue-50 text-blue-700 text-xs font-black border border-blue-200">
-                Avg Settlement: 3.2 Days
-              </span>
+
+              <div className="flex items-center gap-2">
+                <div className="bg-slate-100 p-0.5 rounded-xl flex text-[10px] font-bold text-slate-600">
+                  <button 
+                    onClick={() => setChartRange("7D")} 
+                    className={`px-2 py-1 rounded-lg transition-all ${chartRange === "7D" ? "bg-white text-blue-600 shadow-xs" : "hover:text-slate-900"}`}
+                  >
+                    7D
+                  </button>
+                  <button 
+                    onClick={() => setChartRange("14D")} 
+                    className={`px-2 py-1 rounded-lg transition-all ${chartRange === "14D" ? "bg-white text-blue-600 shadow-xs" : "hover:text-slate-900"}`}
+                  >
+                    14D
+                  </button>
+                  <button 
+                    onClick={() => setChartRange("30D")} 
+                    className={`px-2 py-1 rounded-lg transition-all ${chartRange === "30D" ? "bg-white text-blue-600 shadow-xs" : "hover:text-slate-900"}`}
+                  >
+                    30D
+                  </button>
+                </div>
+                <span className="px-2.5 py-1 rounded-xl bg-blue-50 text-blue-700 text-xs font-black border border-blue-200">
+                  Avg: 3.2 Days
+                </span>
+              </div>
             </div>
 
-            {/* Custom SVG Area Sparkline Chart */}
-            <div className="h-44 w-full relative pt-2">
-              <svg viewBox="0 0 500 120" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+            {/* Interactive SVG Area Chart */}
+            <div className="h-48 w-full relative pt-2 select-none">
+              {/* Dynamic Interactive Tooltip Card */}
+              {hoveredPoint && (
+                <div 
+                  className="absolute z-20 pointer-events-none bg-slate-900 text-white text-xs p-3 rounded-2xl shadow-xl border border-slate-700 transform -translate-x-1/2 -translate-y-full -top-1 transition-all duration-75"
+                  style={{ left: `${(hoveredPoint.x / 500) * 100}%` }}
+                >
+                  <div className="font-bold text-slate-400 text-[10px] uppercase tracking-wider mb-1">
+                    {hoveredPoint.day} • {hoveredPoint.contracts} Contracts
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-slate-300 font-semibold">Gross Volume:</span>
+                    <span className="font-black text-blue-400">₹{hoveredPoint.gmv.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-slate-300 font-semibold">Locked Escrow:</span>
+                    <span className="font-black text-cyan-400">₹{hoveredPoint.escrow.toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
+
+              <svg 
+                viewBox="0 0 500 120" 
+                className="w-full h-full overflow-visible" 
+                preserveAspectRatio="none"
+                onMouseLeave={() => setHoveredPoint(null)}
+              >
                 <defs>
                   <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2563EB" stopOpacity="0.25" />
+                    <stop offset="0%" stopColor="#2563EB" stopOpacity="0.28" />
                     <stop offset="100%" stopColor="#2563EB" stopOpacity="0.0" />
                   </linearGradient>
                   <linearGradient id="escGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.25" />
+                    <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.22" />
                     <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.0" />
                   </linearGradient>
                 </defs>
+
                 {/* Gridlines */}
                 <line x1="0" y1="20" x2="500" y2="20" stroke="#F1F5F9" strokeWidth="1" />
                 <line x1="0" y1="60" x2="500" y2="60" stroke="#F1F5F9" strokeWidth="1" />
                 <line x1="0" y1="100" x2="500" y2="100" stroke="#F1F5F9" strokeWidth="1" />
-                
+
+                {/* Vertical hover guide bar */}
+                {hoveredPoint && (
+                  <line 
+                    x1={hoveredPoint.x} 
+                    y1="0" 
+                    x2={hoveredPoint.x} 
+                    y2="120" 
+                    stroke="#3B82F6" 
+                    strokeWidth="1.5" 
+                    strokeDasharray="2 2" 
+                  />
+                )}
+
                 {/* Volume Area */}
                 <path
-                  d="M 0 100 Q 80 85 140 70 T 260 50 T 380 35 T 500 15 L 500 120 L 0 120 Z"
+                  d="M 20 105 Q 80 95 100 90 T 180 74 T 260 58 T 340 45 T 420 30 T 480 16 L 480 120 L 20 120 Z"
                   fill="url(#volGrad)"
                 />
                 <path
-                  d="M 0 100 Q 80 85 140 70 T 260 50 T 380 35 T 500 15"
+                  d="M 20 105 Q 80 95 100 90 T 180 74 T 260 58 T 340 45 T 420 30 T 480 16"
                   fill="none"
                   stroke="#2563EB"
                   strokeWidth="3"
@@ -519,21 +616,46 @@ function AdminDashboardContent() {
 
                 {/* Escrow Locked Line */}
                 <path
-                  d="M 0 110 Q 90 100 160 92 T 280 80 T 400 70 T 500 62 L 500 120 L 0 120 Z"
+                  d="M 20 112 Q 80 105 100 102 T 180 92 T 260 80 T 340 73 T 420 68 T 480 60 L 480 120 L 20 120 Z"
                   fill="url(#escGrad)"
                 />
                 <path
-                  d="M 0 110 Q 90 100 160 92 T 280 80 T 400 70 T 500 62"
+                  d="M 20 112 Q 80 105 100 102 T 180 92 T 260 80 T 340 73 T 420 68 T 480 60"
                   fill="none"
                   stroke="#06B6D4"
                   strokeWidth="2.5"
                   strokeDasharray="4 4"
                 />
 
-                {/* Data Points */}
-                <circle cx="260" cy="50" r="4" fill="#2563EB" />
-                <circle cx="500" cy="15" r="4" fill="#2563EB" />
-                <circle cx="500" cy="62" r="4" fill="#06B6D4" />
+                {/* Interactive Clickable/Hoverable Data Points */}
+                {chartData.map((pt, idx) => (
+                  <g key={idx} className="cursor-pointer" onMouseEnter={() => setHoveredPoint(pt)}>
+                    {/* Invisible larger hit area */}
+                    <circle cx={pt.x} cy={pt.yGmv} r="14" fill="transparent" />
+                    
+                    {/* Visual GMV Point */}
+                    <circle 
+                      cx={pt.x} 
+                      cy={pt.yGmv} 
+                      r={hoveredPoint?.day === pt.day ? "6" : "3.5"} 
+                      fill="#2563EB" 
+                      stroke="#FFFFFF" 
+                      strokeWidth="2"
+                      className="transition-all duration-150"
+                    />
+
+                    {/* Visual Escrow Point */}
+                    <circle 
+                      cx={pt.x} 
+                      cy={pt.yEscrow} 
+                      r={hoveredPoint?.day === pt.day ? "5" : "3"} 
+                      fill="#06B6D4" 
+                      stroke="#FFFFFF" 
+                      strokeWidth="1.5"
+                      className="transition-all duration-150"
+                    />
+                  </g>
+                ))}
               </svg>
             </div>
 
@@ -541,18 +663,20 @@ function AdminDashboardContent() {
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block"></span>
-                  Gross Settled GMV (₹245k)
+                  Gross Settled GMV (₹{stats.totalVolumeINR.toLocaleString()})
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block"></span>
-                  Locked Escrow (₹42.5k)
+                  Locked Escrow (₹{stats.escrowLockedINR.toLocaleString()})
                 </span>
               </div>
-              <span className="text-slate-400 font-mono">Updated 1 min ago</span>
+              <span className="text-slate-400 font-mono">
+                {hoveredPoint ? `Inspecting ${hoveredPoint.day}` : "Hover points for breakdown"}
+              </span>
             </div>
           </div>
 
-          {/* Feature 5: Gemini AI Threshold Controller */}
+          {/* Gemini AI Threshold Controller */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -593,7 +717,7 @@ function AdminDashboardContent() {
           </div>
         </div>
 
-        {/* Feature 3: Escrow Contracts & Settlement Ledger with Search & Filter */}
+        {/* Escrow Contracts & Settlement Ledger with Search & Filter */}
         <div className="space-y-6">
           <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm">
             <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
